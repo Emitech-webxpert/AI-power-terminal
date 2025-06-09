@@ -1,0 +1,5 @@
+appId: com.electron.app
+productName: best-electron-app
+directories:
+  buildResources: build
+icon: 'frontend/resources/icon.png'

@@ -1,0 +1,29 @@
+extends: electron-builder.base.yml
+
+directories:
+  output: build/windows
+  app: frontend
+
+files:
+  - "**/*"
+
+extraResources:
+  - from: build/windows/server/server.exe
+    to: server
+  - from: build/windows/ai/main.exe
+    to: ai
+  - from: config.json
+    to: config.json
+
+win:
+  target:
+    - nsis
+    - zip
+  artifactName: "${productName}-${version}_${arch}.${ext}"
+  executableName: best-electron-app
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: true
+  deleteAppDataOnUninstall: true

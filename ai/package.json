@@ -1,0 +1,17 @@
+{
+    "name": "ai",
+    "version": "1.0.0",
+    "license": "MIT",
+    "scripts": {
+        "setup": "poetry install --no-root",
+        "format": "black src",
+        "lint": "ruff check",
+        "typecheck": "mypy",
+        "dev": "poetry run python src/main.py reload",
+        "build": "poetry run pyinstaller --clean -y pyinstaller.spec --distpath dist",
+        "pkg:linux": "poetry run pyinstaller --clean pyinstaller.spec --distpath ../build/linux/ai",
+        "pkg:mac": "poetry run pyinstaller --clean pyinstaller.spec --distpath ../build/mac/ai",
+        "pkg:win": "poetry run pyinstaller --clean pyinstaller.spec --distpath ../build/windows/ai",
+        "start": "cross-env-shell \"[ -x dist/main ] && dist/main || [ -x dist/main.exe ] && dist/main.exe\""
+    }
+}

@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "typeRoots": ["types", "node_modules/@types"],
+    "target": "ES2021",
+    "module": "CommonJS",
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "baseUrl": "./src",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@config/*": ["config/*"],
+      "@routes/*": ["routes/*"],
+      "@controllers/*": ["controllers/*"],
+      "@services/*": ["services/*"]
+    }
+  },
+  "include": ["src", "types"]
+}

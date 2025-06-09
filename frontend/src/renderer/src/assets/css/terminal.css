@@ -1,0 +1,122 @@
+.terminal-main {
+  width: -webkit-fill-available;
+}
+
+.terminal-tab-bar {
+  min-height: 32px;
+}
+
+.terminal-tabs {
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+}
+
+.terminal-tab-close {
+  background: #cd2323;
+}
+.terminal-instance {
+  height: 100%;
+}
+
+.xterm .xterm-viewport {
+  background-color: #18191d !important;
+}
+
+body.light .xterm .xterm-viewport {
+  background-color: #FAFAFA !important;
+}
+
+body.light .xterm-rows > div > span:first-child {
+  color: #101010;
+}
+
+body.light .xterm-rows > div > span:first-child:nth-last-child(2) {
+  color: #101010;
+}
+
+body.light .xterm-dom-renderer-owner-2 .xterm-rows,
+body.light .xterm-dom-renderer-owner-3 .xterm-rows {
+  color: #101010;
+}
+
+body.light .xterm-rows {
+  color: #101010 !important;
+}
+
+.xterm-dom-renderer-owner-2 .xterm-rows {
+  white-space: break-spaces !important;
+  word-break: break-all;
+}
+.xterm-rows div,
+.xterm-screen {
+  width: 100% !important;
+  height: 100% !important;
+}
+.terminal {
+  height: 100%;
+}
+
+.width-full-minus {
+  width: calc(100% - 70px);
+}
+
+.width-half {
+  width: calc(100% - 310px);
+}
+
+.width-full-mxxx {
+  width: calc(100% - 340px);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.terminal-tabs {
+  min-width: fit-content;
+  max-width: 200px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.terminal-tab-bar > div {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.dots {
+  background: radial-gradient(50% 50% at 50% 50%, #e48a8a 0%, #d83b3b 100%);
+  width: 10px;
+  height: 10px;
+  border-radius: 100%;
+}
+
+.green {
+  background: radial-gradient(50% 50% at 50% 50%, #97c999 0%, #03ca0b 100%);
+}
+
+body.light .xterm-rows .xterm-cursor.xterm-cursor-outline{
+  outline-color: #101010;
+}
+
+body.light .xterm-rows .xterm-cursor.xterm-cursor-block{
+  background-color: #101010 !important;
+}
+.terminal-instance-container{
+  border-radius: 6px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+ 
+}

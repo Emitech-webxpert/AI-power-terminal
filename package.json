@@ -1,0 +1,39 @@
+{
+  "name": "electron-monorepo",
+  "private": true,
+  "license": "MIT",
+  "workspaces": [
+    "frontend",
+    "server",
+    "ai"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/XpertWebApp/Ai-power-terminal-.git"
+  },
+  "scripts": {
+    "dev": "concurrently -n frontend,server,ai -c auto \"yarn workspace frontend dev\" \"yarn workspace server dev\" \"yarn workspace ai dev\"",
+    "start": "concurrently -n frontend,server,ai -c auto \"yarn workspace frontend start\" \"yarn workspace server start\" \"yarn workspace ai start\"",
+    "build": "concurrently -n frontend,server,ai -c auto \"yarn workspace frontend build\" \"yarn workspace server build\" \"yarn workspace ai build\"",
+    "clean:build": "rimraf build",
+    "build:win": "cross-env-shell BUILD_OUTPUT=$PWD/build/windows yarn workspace server build && cross-env-shell BUILD_OUTPUT=$PWD/build/windows yarn workspace server run pkg:win && yarn workspace frontend build:win && cross-env-shell BUILD_OUTPUT=$PWD/build/windows yarn workspace ai run pkg:win && electron-builder --config electron-builder.win.yml --win && node scripts/windows.js",
+    "build:mac": "cross-env-shell BUILD_OUTPUT=$PWD/build/mac yarn workspace server build && cross-env-shell BUILD_OUTPUT=$PWD/build/mac yarn workspace server run pkg:mac && yarn workspace frontend build:mac && cross-env-shell BUILD_OUTPUT=$PWD/build/mac yarn workspace ai run pkg:mac && electron-builder --config electron-builder.mac.yml --mac && node scripts/mac.js",
+    "build:linux": "cross-env-shell BUILD_OUTPUT=$PWD/build/linux yarn workspace server build && cross-env-shell BUILD_OUTPUT=$PWD/build/linux yarn workspace server run pkg:linux && yarn workspace frontend build:linux && cross-env-shell BUILD_OUTPUT=$PWD/build/linux yarn workspace ai run pkg:linux && electron-builder --config electron-builder.linux.yml --linux && node scripts/linux.js",
+    "typecheck": "yarn workspace frontend typecheck && yarn workspace server typecheck && yarn workspace ai typecheck",
+    "format": "yarn workspace frontend format && yarn workspace server format && yarn workspace ai format",
+    "lint": "yarn workspace frontend lint && yarn workspace server lint && yarn workspace ai lint",
+    "postinstall": "yarn workspace ai setup"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "cross-env": "^7.0.3",
+    "electron-builder": "^25.1.8"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@hello-pangea/dnd": "^18.0.1"
+  }
+}

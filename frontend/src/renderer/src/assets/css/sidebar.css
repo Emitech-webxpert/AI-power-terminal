@@ -1,0 +1,22 @@
+.file-item:hover {
+  background-color: #18191d;
+}
+
+body.light .file-item:hover {
+  background-color: #ededed;
+}
+
+.ml-6 {
+  margin-left: 1.5rem;
+}
+
+.space-y-1 > * + * {
+  margin-top: 0.25rem;
+}
+
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+.h-screen {
+  height: 90vh;
+}
