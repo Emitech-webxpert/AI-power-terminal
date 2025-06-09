@@ -14,9 +14,12 @@
     "skipLibCheck": true,
     "paths": {
       "@config/*": ["config/*"],
+      "@db/*": ["db/*"],
       "@routes/*": ["routes/*"],
       "@controllers/*": ["controllers/*"],
-      "@services/*": ["services/*"]
+      "@services/*": ["services/*"],
+      "@models/*": ["models/*"],
+      "@interfaces/*": ["interfaces/*"]
     }
   },
   "include": ["src", "types"]
