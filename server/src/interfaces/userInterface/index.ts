@@ -7,18 +7,38 @@ export interface IUser {
   resetOTP?: string;
   resetOTPExpiry?: Date;
   profileUrl?: string;
-  terminalLogId?: string; // Reference to terminal log table
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface ICreateUser {
   name: string;
   email: string;
   password?: string;
-  isGoogleLogin?: boolean;
+  isGoogleLogin: boolean;
+  resetOTP?: string;
+  resetOTPExpiry?: Date;
   profileUrl?: string;
-  terminalLogId?: string;
+  // terminalLogId?: string;
+}
+
+export interface IUserCreationAttributes {
+  id?: string;
+  name: string;
+  email: string;
+  password?: string;
+  isGoogleLogin: boolean;
+  resetOTP?: string;
+  resetOTPExpiry?: Date;
+  profileUrl?: string;
+  // terminalLogId?: string;
+}
+
+export interface IUserResponse {
+  id: string;
+  name: string;
+  email: string;
+  isGoogleLogin: boolean;
+  profileUrl?: string;
+  // terminalLogId?: string;
 }
 
 export interface IUpdateUser {
@@ -29,18 +49,7 @@ export interface IUpdateUser {
   resetOTP?: string;
   resetOTPExpiry?: Date;
   profileUrl?: string;
-  terminalLogId?: string;
-}
-
-export interface IUserResponse {
-  id: string;
-  name: string;
-  email: string;
-  isGoogleLogin: boolean;
-  profileUrl?: string;
-  terminalLogId?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  // terminalLogId?: string;
 }
 
 export interface ILoginUser {

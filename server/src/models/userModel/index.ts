@@ -1,10 +1,8 @@
-// src/models/userModel/index.ts
-
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '@db/database';
-import { IUser } from '@interfaces/userInterface';
+import { IUser, IUserCreationAttributes } from '@interfaces/userInterface';
 
-class User extends Model<IUser> implements IUser {
+class User extends Model<IUser, IUserCreationAttributes> implements IUser {
   public id!: string;
   public name!: string;
   public email!: string;
@@ -58,19 +56,12 @@ User.init(
       defaultValue: null,
       comment: 'URL to the user profile image',
     },
-    terminalLogId: {
-      type: DataTypes.UUID,
-      allowNull: true,
-      comment: 'Reference to terminal log table',
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-    },
+    // terminalLogId: {
+    //   type: DataTypes.UUID,
+    //   allowNull: true,
+    //   comment: 'Reference to terminal log table',
+    // },
+
   },
   {
     sequelize,

@@ -15,12 +15,15 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "pg": "^8.16.0",
+    "sequelize": "^6.37.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.23.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/pg": "^8.15.4",
     "eslint": "^9.23.0",
     "globals": "^16.0.0",
     "pkg": "^5.8.1",
