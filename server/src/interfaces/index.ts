@@ -1,7 +1,4 @@
-// src/interfaces/index.ts
+export * from '@interfaces/userInterface';
 
-// User interfaces
-export * from './userInterface';
-
-// Common interfaces
-export * from './commonInterface';
+export * from '@interfaces/commonInterface';
+export * from '@interfaces/terminalLogInterface';

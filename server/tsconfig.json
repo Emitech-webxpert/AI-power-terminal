@@ -19,7 +19,8 @@
       "@controllers/*": ["controllers/*"],
       "@services/*": ["services/*"],
       "@models/*": ["models/*"],
-      "@interfaces/*": ["interfaces/*"]
+      "@interfaces/*": ["interfaces/*"],
+       "@app/*":["app"]
     }
   },
   "include": ["src", "types"]
