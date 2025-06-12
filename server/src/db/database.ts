@@ -1,5 +1,3 @@
-// src/db/database.ts
-
 import { Sequelize } from "sequelize";
 import { getEnv } from "@config/index";
 

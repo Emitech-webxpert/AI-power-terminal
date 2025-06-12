@@ -149,7 +149,6 @@ export const useTerminalTabs = () => {
     handleMouseLeave,
     handleMouseUp,
     handleMouseMove,
-
     handleSessionsRightClick,
     handleRenameOpen,
     handleNameOpen,
