@@ -4,9 +4,8 @@ import Terminal from '@renderer/Terminal'
 import Sidebar from '@components/sideBar/sideBarMain'
 import { useAppSelector, useAppDispatch } from '@renderer/store/hooks'
 import { selectIsDark, toggleTheme } from '@renderer/store/slices/themeSlice'
-import { SignUp } from './auth'
+import AuthLayout from '@components/authLayout'
 
-// Custom hook for sidebar drag functionality
 const useSidebarDrag = () => {
   const [sidebarOnRight, setSidebarOnRight] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
@@ -14,7 +13,6 @@ const useSidebarDrag = () => {
   const handleDragStart = useCallback((e: React.DragEvent) => {
     setIsDragging(true)
     e.dataTransfer.effectAllowed = 'move'
-
     // Add visual feedback
     if (e.target instanceof HTMLElement) {
       e.target.style.opacity = '0.5'
@@ -23,13 +21,10 @@ const useSidebarDrag = () => {
 
   const handleDragEnd = useCallback((e: React.DragEvent) => {
     setIsDragging(false)
-
-    // Remove visual feedback
     if (e.target instanceof HTMLElement) {
       e.target.style.opacity = '1'
     }
 
-    // Determine position based on screen center
     const screenCenter = window.innerWidth / 2
     const shouldBeOnRight = e.clientX > screenCenter
     setSidebarOnRight(shouldBeOnRight)
@@ -43,8 +38,6 @@ const useSidebarDrag = () => {
   const handleContainerDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
-
-    // Determine position based on screen center
     const screenCenter = window.innerWidth / 2
     const shouldBeOnRight = e.clientX > screenCenter
     setSidebarOnRight(shouldBeOnRight)
@@ -78,19 +71,19 @@ const App: React.FC = () => {
   const dispatch = useAppDispatch()
 
   useEffect(() => {
-    const checkAuth = () => {
-      const authStatus = localStorage.getItem('isLoggedIn')
-      setIsLoggedIn(authStatus === 'true')
-      setIsAuthLoading(false)
-
-    }
-
-    // Small delay to prevent flash
-    setTimeout(checkAuth, 100)
+    checkAuth()
   }, [])
+
+  const checkAuth = () => {
+    const authStatus = localStorage.getItem('isLoggedIn')
+    console.log('authStatus from localStorage:', authStatus)
+    setIsLoggedIn(authStatus === 'true')
+    setIsAuthLoading(false)
+  }
 
   const handleLoginSuccess = () => {
     setIsLoggedIn(true)
+    localStorage.setItem('isLoggedIn', 'true')
   }
 
   const handleThemeToggle = (): void => {
@@ -105,16 +98,17 @@ const App: React.FC = () => {
 
   if (isAuthLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <div
+        style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
+      >
         <p>Loading...</p>
       </div>
     )
   }
 
   if (!isLoggedIn) {
-    return <SignUp onLoginSuccess={handleLoginSuccess} />
+    return <AuthLayout onLoginSuccess={handleLoginSuccess} />
   }
-
 
   return (
     <>
@@ -125,8 +119,6 @@ const App: React.FC = () => {
         onDragOver={handleContainerDragOver}
         onDrop={handleContainerDrop}
       >
-
-
         {/* Sidebar - Left Position */}
         {!sidebarOnRight && (
           <div className="min-w-[250px] flex-shrink-0">
