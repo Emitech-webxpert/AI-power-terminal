@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io'
-import { sessions } from '@renderer/constant'
 import {
   SessionWizadModal,
   SessionContextModal,
@@ -10,28 +9,72 @@ import {
   DuplicateModal,
   RenameModal
 } from '@modals/index'
-import {click, file, folder, clicklight} from '@renderer/assets'
+import { click, file, folder, clicklight } from '@renderer/assets'
 import { WorkflowManagerProps } from '@renderer/type'
 import SessionToolbar from '@renderer/components/sessionToolbar'
-import { useAppSelector } from '@renderer/store/hooks'
+import { useAppSelector, useAppDispatch } from '@renderer/store/hooks'
 import { selectIsDark } from '@renderer/store/slices/themeSlice'
+import {
+  selectIsSessionsExpanded,
+  selectIsSessionsExpandedInner,
+  selectIsSessionWizadOpen,
+  selectIsQuickConnectOpen,
+  selectIsDuplicateOpen,
+  selectIsSessionContextOpen,
+  selectIsSessionContextOpenFile,
+  selectSelectedFileId,
+  selectIsRenameOpen,
+  selectIsDeleteOpen,
+  selectDeleteTitle,
+  // NEW SELECTORS for API data
+  selectSessions,
+  selectSessionsLoading,
+  selectSessionsError,
+  toggleSessionsExpanded,
+  toggleSessionsExpandedInner,
+  openSessionWizard,
+  closeSessionWizard,
+  openQuickConnect,
+  closeQuickConnect,
+  openDuplicate,
+  closeDuplicate,
+  openSessionContext,
+  closeSessionContext,
+  openSessionContextFile,
+  closeSessionContextFile,
+  openRename,
+  closeRename,
+  openDelete,
+  closeDelete,
+  clearError
+} from '@renderer/store/slices/sessionList'
+import { fetchSessions } from '@renderer/store/slices/sessionThunks'
 
 const SessionManager: React.FC<WorkflowManagerProps> = ({ toggleWorkflowVisibility, onContextMenuToggle, sidebarOnRight }) => {
-  const [isSessionsExpanded, setIsSessionsExpanded] = useState(true)
-  const [isSessionsExpandedInner, setIsSessionsExpandedInner] = useState(true)
-  const [isSessionWizadOpen, setIsSessionWizadOpen] = useState(false)
-  const [isQuickConnectOpen, setIsQuickConnectOpen] = useState(false)
-  const [isDuplicateOpen, setIsDuplicateOpen] = useState(false)
-  const [isSessionContextOpen, setIsSessionContextOpen] = useState(false)
-  const [isSessionContextOpenFile, setIsSessionContextOpenFile] = useState(false)
-  const [selectedFileId, setSelectedFileId] = useState<string | null>(null)
-  const [isRenameOpen, setIsRenameOpen] = useState(false)
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
-  const [deleteTitle, setDeleteTitle] = useState('')
   const sessionModalRef = useRef<HTMLDivElement>(null)
   const sessionFileModalRef = useRef<HTMLDivElement>(null)
 
+  const dispatch = useAppDispatch()
   const isDark = useAppSelector(selectIsDark)
+  const isSessionsExpanded = useAppSelector(selectIsSessionsExpanded)
+  const isSessionsExpandedInner = useAppSelector(selectIsSessionsExpandedInner)
+  const isSessionWizadOpen = useAppSelector(selectIsSessionWizadOpen)
+  const isQuickConnectOpen = useAppSelector(selectIsQuickConnectOpen)
+  const isDuplicateOpen = useAppSelector(selectIsDuplicateOpen)
+  const isSessionContextOpen = useAppSelector(selectIsSessionContextOpen)
+  const isSessionContextOpenFile = useAppSelector(selectIsSessionContextOpenFile)
+  const selectedFileId = useAppSelector(selectSelectedFileId)
+  const isRenameOpen = useAppSelector(selectIsRenameOpen)
+  const isDeleteOpen = useAppSelector(selectIsDeleteOpen)
+  const deleteTitle = useAppSelector(selectDeleteTitle)
+
+  // NEW SELECTORS for API data
+  const sessions = useAppSelector(selectSessions)
+  const sessionsLoading = useAppSelector(selectSessionsLoading)
+  const sessionsError = useAppSelector(selectSessionsError)
+  useEffect(() => {
+    dispatch(fetchSessions())
+  }, [dispatch])
 
   useEffect(() => {
     if (onContextMenuToggle) {
@@ -39,71 +82,69 @@ const SessionManager: React.FC<WorkflowManagerProps> = ({ toggleWorkflowVisibili
     }
   }, [isSessionContextOpen, isSessionContextOpenFile, onContextMenuToggle]);
 
+  // Clear error when component unmounts or when needed
+  useEffect(() => {
+    return () => {
+      if (sessionsError) {
+        dispatch(clearError())
+      }
+    }
+  }, [sessionsError, dispatch])
 
   const handleRenameOpen = () => {
-    setIsRenameOpen(true)
-    setIsSessionContextOpen(false)
-    setIsSessionContextOpenFile(false)
+    dispatch(openRename())
   }
 
   const handleRenameClose = () => {
-    setIsRenameOpen(false)
+    dispatch(closeRename())
   }
 
   const handleSessionWizadClick = () => {
-    setIsSessionWizadOpen(true)
-    setIsSessionContextOpen(false)
+    dispatch(openSessionWizard())
   }
 
   const handleSessionWizadClose = () => {
-    setIsSessionWizadOpen(false)
+    dispatch(closeSessionWizard())
   }
 
   const handleQuickConnectClose = () => {
-    setIsQuickConnectOpen(false)
+    dispatch(closeQuickConnect())
   }
 
   const handleSessionContextOpen = () => {
-    setIsSessionContextOpen(true)
+    dispatch(openSessionContext())
   }
 
   const handleSessionContextClose = () => {
-    setIsSessionContextOpen(false)
+    dispatch(closeSessionContext())
   }
 
   const handleSessionContextOpenFile = (id: string) => {
-    setIsSessionContextOpenFile(true)
-    setSelectedFileId(id)
+    dispatch(openSessionContextFile(id))
   }
 
   const handleSessionContextCloseFile = () => {
-    setIsSessionContextOpenFile(false)
-    setSelectedFileId(null)
+    dispatch(closeSessionContextFile())
   }
 
   const handleDeleteOpen = (title: string) => {
-    setDeleteTitle(title)
-    setIsDeleteOpen(true)
-    setIsSessionContextOpen(false)
-    setIsSessionContextOpenFile(false)
+    dispatch(openDelete(title))
   }
+
   const handleQuickConnectClick = () => {
-    setIsQuickConnectOpen(true)
-    setIsSessionContextOpen(false)
+    dispatch(openQuickConnect())
   }
 
   const handleDuplicateClick = () => {
-    setIsDuplicateOpen(true)
-    setIsSessionContextOpenFile(false)
+    dispatch(openDuplicate())
   }
 
   const handleDuplicateClose = () => {
-    setIsDuplicateOpen(false)
+    dispatch(closeDuplicate())
   }
 
   const handleDeleteClose = () => {
-    setIsDeleteOpen(false)
-    setDeleteTitle('')
+    dispatch(closeDelete())
   }
 
   const handleSessionsRightClick = (e: React.MouseEvent) => {
@@ -119,18 +160,21 @@ const SessionManager: React.FC<WorkflowManagerProps> = ({ toggleWorkflowVisibili
   }
 
   const handleSessionsClick = () => {
-    setIsSessionsExpandedInner(!isSessionsExpandedInner)
+    dispatch(toggleSessionsExpandedInner())
+  }
+
+  const handleRefreshSessions = () => {
+    dispatch(fetchSessions())
   }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node
       if (sessionModalRef.current && !sessionModalRef.current.contains(target)) {
-        setIsSessionContextOpen(false)
+        dispatch(closeSessionContext())
       }
       if (sessionFileModalRef.current && !sessionFileModalRef.current.contains(target)) {
-        setIsSessionContextOpenFile(false)
-        setSelectedFileId(null)
+        dispatch(closeSessionContextFile())
       }
     }
     if (isSessionContextOpen || isSessionContextOpenFile) {
@@ -139,7 +183,7 @@ const SessionManager: React.FC<WorkflowManagerProps> = ({ toggleWorkflowVisibili
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [isSessionContextOpen, isSessionContextOpenFile])
+  }, [isSessionContextOpen, isSessionContextOpenFile, dispatch])
 
   return (
     <>
@@ -147,11 +191,11 @@ const SessionManager: React.FC<WorkflowManagerProps> = ({ toggleWorkflowVisibili
         <div
           className={`absolute ${!sidebarOnRight ? '-right-5' : 'left-11-minus rotate-180'} cursor-pointer ${isSessionsExpanded ? 'top-50' : 'top-0 hidden'}`}
           onClick={toggleWorkflowVisibility}>
-         {isDark ?  <img src={click} className="" alt="click" /> :  <img src={clicklight} className="" alt="click" /> }
+          {isDark ? <img src={click} className="" alt="click" /> : <img src={clicklight} className="" alt="click" />}
         </div>
         <div
           className="section-header flex items-center justify-between p-3 cursor-pointer"
-          onClick={() => setIsSessionsExpanded(!isSessionsExpanded)}>
+          onClick={() => dispatch(toggleSessionsExpanded())}>
           <span className="text-sm font-medium text-white">Session Manager</span>
           {isSessionsExpanded ? (
             <IoMdArrowDropup size={22} className="text-white" />
@@ -162,7 +206,7 @@ const SessionManager: React.FC<WorkflowManagerProps> = ({ toggleWorkflowVisibili
 
         {isSessionsExpanded && (
           <div className="pb-3">
-          <SessionToolbar onSessionWizadClick={handleSessionWizadClick} />
+            <SessionToolbar onSessionWizadClick={handleSessionWizadClick} />
             <div className="px-3 pb-5">
               <div
                 className="flex items-center mb-1 cursor-pointer gap-1 border-t border-gray-light pt-2 relative"
@@ -174,7 +218,9 @@ const SessionManager: React.FC<WorkflowManagerProps> = ({ toggleWorkflowVisibili
                   <IoMdArrowDropdown size={22} className="text-white" />
                 )}
                 <img src={folder} className="" alt="folder" title="folder" />
-                <span className="text-xs font-medium text-white">Sessions</span>
+                <span className="text-xs font-medium text-white">
+                  Sessions {sessionsLoading && '(Loading...)'}
+                </span>
                 {isSessionContextOpen && (
                   <div ref={sessionModalRef}>
                     <SessionContextModal
@@ -189,30 +235,51 @@ const SessionManager: React.FC<WorkflowManagerProps> = ({ toggleWorkflowVisibili
                 )}
               </div>
 
+              {/* Error Display */}
+              {sessionsError && (
+                <div className="ml-6 mb-2 p-2 bg-red-100 border border-red-400 text-red-700 rounded text-xs">
+                  Error: {sessionsError}
+                  <button
+                    onClick={handleRefreshSessions}
+                    className="ml-2 underline hover:no-underline"
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
+
               {isSessionsExpandedInner && (
                 <div className="ml-6 space-y-1 max-h-64 h-auto min-h-8 overflow-auto overflow-x-visible">
-                  {sessions.map((session) => (
-                    <div
-                      key={session.id}
-                      className="file-item flex items-center cursor-pointer px-2 py-1 rounded relative"
-                      onContextMenu={(e) => handleSessionsRightClickFile(e, session.id)}>
-                      <div className="mr-1">
-                        <img src={file} className="" title="file" alt="file" />
-                      </div>
-                      <span className="text-xs text-light truncate">{session.name}</span>
-                      {selectedFileId === session.id && isSessionContextOpenFile && (
-                        <div ref={sessionFileModalRef}>
-                          <SessionContextFileModal
-                            isOpen={isSessionContextOpenFile}
-                            onClose={handleSessionContextCloseFile}
-                            onDeleteOpen={() => handleDeleteOpen('Delete this file?')}
-                            onDuplicate={handleDuplicateClick}
-                            onRenameOpen={handleRenameOpen}
-                          />
-                        </div>
-                      )}
+                  {sessionsLoading ? (
+                    <div className="text-xs text-light">Loading sessions...</div>
+                  ) : sessions?.length === 0 ? (
+                    <div className="text-xs text-light">
+                      {sessionsError ? 'Failed to load sessions' : 'No sessions found'}
                     </div>
-                  ))}
+                  ) : (
+                    sessions.map((session, index) => (
+                      <div
+                        key={session?.id || `session-${index}`}
+                        className="file-item flex items-center cursor-pointer px-2 py-1 rounded relative"
+                        onContextMenu={(e) => session?.id && handleSessionsRightClickFile(e, session.id)}>
+                        <div className="mr-1">
+                          <img src={file} className="" title="file" alt="file" />
+                        </div>
+                        <span className="text-xs text-light truncate">{session?.sessionName || 'Unknown Session'}</span>
+                        {selectedFileId === session?.id && isSessionContextOpenFile && (
+                          <div ref={sessionFileModalRef}>
+                            <SessionContextFileModal
+                              isOpen={isSessionContextOpenFile}
+                              onClose={handleSessionContextCloseFile}
+                              onDeleteOpen={() => handleDeleteOpen('Delete this file?')}
+                              onDuplicate={handleDuplicateClick}
+                              onRenameOpen={handleRenameOpen}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
                 </div>
               )}
             </div>

@@ -1,8 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { SessionData } from '@renderer/type/sshSession'
 
+
 const initialState: SessionData = {
-    userId: 'e9301ff9-a51c-4170-a649-ef569e2bd7fe',
+    userId: '47472f6a-f5c2-4ffe-85d7-a4ec97f44407',
     protocol: '',
     host: '',
     port: '',

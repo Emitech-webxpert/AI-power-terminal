@@ -3,7 +3,6 @@ import { ICreateConnection } from '@interfaces/sshConnectionInterface';
 
 const createSShConnection = async (connectionData: ICreateConnection) => {
   try {
-    // return console.log(connectionData,"sadfsfd")
     const newConnection = await Connection.create(connectionData);
     return newConnection;
   } catch (error: any) {

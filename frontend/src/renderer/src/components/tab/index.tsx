@@ -58,7 +58,6 @@ const TerminalTabs: React.FC<TerminalTabsProps> = ({ className }) => {
       title: 'Connecting...'
     }
     dispatch(addTerminal(newTerminal))
-    console.log('Created terminal via Redux:', newTerminal.id)
   }
 
   const handleUpdateTerminalTitle = (terminalId: string, newTitle: string) => {
@@ -67,7 +66,6 @@ const TerminalTabs: React.FC<TerminalTabsProps> = ({ className }) => {
 
   const handleCloseTerminal = (terminalId: string) => {
     dispatch(removeTerminal(terminalId))
-    console.log('Closed terminal via Redux:', terminalId)
   }
 
   const handleSetActiveTerminal = (terminalId: string) => {

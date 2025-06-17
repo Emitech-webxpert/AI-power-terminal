@@ -1,21 +1,27 @@
+// SessionWizardModal component with proper typing
 import React, { useEffect } from 'react'
 import { X } from 'lucide-react'
 import setting from '@renderer/assets/icons/setting.svg'
 import { SessionWizadModalProps } from '@renderer/type'
 import { Step1, Step2, Step3 } from '@renderer/components/sessionForms'
-import { useDispatch, useSelector } from 'react-redux'
+import {  useSelector } from 'react-redux'
 import {
   updateField,
   resetSessionWizard,
   selectSessionWizard
-} from '@renderer/store/slices/sessionSlice'
+} from '@renderer/store/slices/sessionwizardSlice'
 import { createSession } from '@renderer/constants/services/sshConnection'
+import { fetchSessions } from '@renderer/store/slices/sessionThunks'
+// Import the proper dispatch type from your store hooks
+import { useAppDispatch } from '@renderer/store/hooks' // Use this instead of useDispatch
 
 const SessionWizadModal: React.FC<SessionWizadModalProps> = ({ isOpen, onClose }) => {
-  const dispatch = useDispatch()
+  // Use the typed dispatch hook
+  const dispatch = useAppDispatch() // This should be useAppDispatch, not useDispatch
   const session = useSelector(selectSessionWizard)
   const step = session?.step
   const visible = session?.visible
+
   useEffect(() => {
     if (isOpen) {
       dispatch(resetSessionWizard())
@@ -30,8 +36,11 @@ const SessionWizadModal: React.FC<SessionWizadModalProps> = ({ isOpen, onClose }
 
   const handleFinish = async () => {
     try {
-      // return console.log(session, "sessionsession")
       await createSession(session)
+      
+      // This should now work with proper typing
+      dispatch(fetchSessions())
+      
       dispatch(resetSessionWizard())
       onClose()
     } catch (error) {

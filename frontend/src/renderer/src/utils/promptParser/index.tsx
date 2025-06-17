@@ -23,9 +23,7 @@ const parsePromptForTitle = (data: string): string | null => {
         // Method 2: Look for just hostname:path pattern (fallback)
         const simpleMatch = line.match(/([^:\s]+):([^$#\s]+)[\s]*[$#]/)
         if (simpleMatch) {
-            const [, hostname, path] = simpleMatch
-            console.log('Simple match:', { hostname, path })
-            
+            const [, hostname, path] = simpleMatch            
             const shortPath = path === '~' ? '~' : path.split('/').pop() || path
             return `${hostname}:${shortPath}`
         }
