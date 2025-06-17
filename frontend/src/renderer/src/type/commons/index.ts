@@ -73,8 +73,18 @@ export interface UserDropdownProps {
   setIsDropdownOpen: (open: boolean) => void
 }
 
+// export interface SidebarProps {
+//   setIsSidebarClose: React.Dispatch<React.SetStateAction<boolean>>;
+//   setIsButtonClose: React.Dispatch<React.SetStateAction<boolean>>;
+//   sidebarOnRight?: boolean
+// }
+
 export interface SidebarProps {
-  setIsSidebarClose: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsButtonClose: React.Dispatch<React.SetStateAction<boolean>>;
-  sidebarOnRight?: boolean
+  setIsSidebarClose: (value: boolean) => void
+  setIsButtonClose: (value: boolean) => void
+  sessionOnRight: boolean
+  workflowOnRight: boolean
+  handleDragStart: (e: React.DragEvent, component: 'session' | 'workflow') => void
+  handleDragEnd: (e: React.DragEvent) => void
+  side: 'left' | 'right'
 }

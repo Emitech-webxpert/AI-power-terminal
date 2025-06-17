@@ -67,6 +67,9 @@ body.light .xterm-rows {
 .width-full-mxxx {
   width: calc(100% - 340px);
 }
+.width-center {
+  width: calc(100% - 70px);
+}
 
 .scrollbar-hide {
   -ms-overflow-style: none;

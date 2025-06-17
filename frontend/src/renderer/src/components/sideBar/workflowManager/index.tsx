@@ -102,7 +102,7 @@ const WorkflowManager: React.FC<WorkflowManagerProps> = ({ toggleWorkflowVisibil
         {isDark ?  <img src={click} className="" alt="click" /> :  <img src={clicklight} className="" alt="click" /> }
       </div>
       <div
-        className="section-header flex items-center justify-between p-3 cursor-pointer"
+        className="section-header flex items-center justify-between p-3 cursor-pointer w-52"
         onClick={() => setIsWorkflowExpanded(!isWorkflowExpanded)}>
         <span className="text-sm font-medium text-white">Workflow</span>
         {isWorkflowExpanded ? (

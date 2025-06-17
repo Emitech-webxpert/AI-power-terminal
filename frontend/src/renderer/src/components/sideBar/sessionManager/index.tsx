@@ -150,7 +150,7 @@ const SessionManager: React.FC<WorkflowManagerProps> = ({ toggleWorkflowVisibili
          {isDark ?  <img src={click} className="" alt="click" /> :  <img src={clicklight} className="" alt="click" /> }
         </div>
         <div
-          className="section-header flex items-center justify-between p-3 cursor-pointer"
+          className="section-header flex items-center justify-between p-3 cursor-pointer w-52"
           onClick={() => setIsSessionsExpanded(!isSessionsExpanded)}>
           <span className="text-sm font-medium text-white">Session Manager</span>
           {isSessionsExpanded ? (
