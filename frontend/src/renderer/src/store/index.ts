@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit'
-import themeReducer from './slices/themeSlice'  
-import terminalReducer from './slices/terminalSlice' 
+import themeReducer from './slices/themeSlice'
+import terminalReducer from './slices/terminalSlice'
+import sessionWizardReducer from "./slices/sessionSlice"
 
 export const store = configureStore({
   reducer: {
     theme: themeReducer,
     terminal: terminalReducer,
+    sessionWizard: sessionWizardReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -13,7 +15,7 @@ export const store = configureStore({
         ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
       },
     }),
-  devTools: process.env.NODE_ENV !== 'production', 
+  devTools: process.env.NODE_ENV !== 'production',
 })
 
 export type RootState = ReturnType<typeof store.getState>
