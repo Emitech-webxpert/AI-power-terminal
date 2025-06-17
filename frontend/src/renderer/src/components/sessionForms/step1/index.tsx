@@ -4,7 +4,7 @@ import { Step1Props } from '@renderer/type'
 
 const Step1: React.FC<Step1Props> = ({ selectedProtocol, setSelectedProtocol }) => {
   const [isOpenSelect, setIsOpenSelect] = React.useState(false)
-  const protocols = ['SSH', 'RDP', 'VNC']
+  const protocols = ['SSH1','SSH2', 'Telnet', 'LocalTerminal']
 
   const onToggleSelect = () => setIsOpenSelect(!isOpenSelect)
   const onSelect = (protocol: string) => {

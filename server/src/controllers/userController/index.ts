@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import { createUser, getUserById } from '@services/userService';
+import { UserService } from '@services/index';
 import { ICreateUser } from '@interfaces/userInterface';
 
 export const createUserController = async (req: Request, res: Response): Promise<void> => {
   try {
     const userData: ICreateUser = req.body;
-    const user = await createUser(userData);
+    const user = await UserService.createUser(userData);
 
     res.status(201).json({
       success: true,
@@ -23,7 +23,7 @@ export const createUserController = async (req: Request, res: Response): Promise
 export const getUserByIdController = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const user = await getUserById(id);
+    const user = await UserService.getUserById(id);
 
     if (!user) {
       res.status(404).json({

@@ -1,33 +1,63 @@
-import React, { useState } from 'react'
+// SessionWizardModal component with proper typing
+import React, { useEffect } from 'react'
 import { X } from 'lucide-react'
 import setting from '@renderer/assets/icons/setting.svg'
 import { SessionWizadModalProps } from '@renderer/type'
 import { Step1, Step2, Step3 } from '@renderer/components/sessionForms'
+import {  useSelector } from 'react-redux'
+import {
+  updateField,
+  resetSessionWizard,
+  selectSessionWizard
+} from '@renderer/store/slices/sessionwizardSlice'
+import { createSession } from '@renderer/constants/services/sshConnection'
+import { fetchSessions } from '@renderer/store/slices/sessionThunks'
+// Import the proper dispatch type from your store hooks
+import { useAppDispatch } from '@renderer/store/hooks' // Use this instead of useDispatch
 
 const SessionWizadModal: React.FC<SessionWizadModalProps> = ({ isOpen, onClose }) => {
-  const [step, setStep] = useState(1)
-  const [selectedProtocol, setSelectedProtocol] = useState('SSH2')
-  const [host, setHost] = useState('')
-  const [port, setPort] = useState('')
-  const [username, setUsername] = useState('')
-  const [sessionname, setSessionname] = useState('')
-  const [description, setDescription] = useState('')
+  // Use the typed dispatch hook
+  const dispatch = useAppDispatch() // This should be useAppDispatch, not useDispatch
+  const session = useSelector(selectSessionWizard)
+  const step = session?.step
+  const visible = session?.visible
 
-  const nextStep = () => setStep((prev) => Math.min(prev + 1, 3))
-  const prevStep = () => setStep((prev) => Math.max(prev - 1, 1))
+  useEffect(() => {
+    if (isOpen) {
+      dispatch(resetSessionWizard())
+      dispatch(updateField({ field: 'visible', value: true }))
+    } else {
+      dispatch(updateField({ field: 'visible', value: false }))
+    }
+  }, [isOpen, dispatch])
 
-  const handleFinish = () => {
-    console.log({ selectedProtocol, host, port, username, sessionname, description })
-    onClose()
+  const nextStep = () => dispatch(updateField({ field: 'step', value: Math.min(step + 1, 3) }))
+  const prevStep = () => dispatch(updateField({ field: 'step', value: Math.max(step - 1, 1) }))
+
+  const handleFinish = async () => {
+    try {
+      await createSession(session)
+      
+      // This should now work with proper typing
+      dispatch(fetchSessions())
+      
+      dispatch(resetSessionWizard())
+      onClose()
+    } catch (error) {
+      console.error('Failed to create session', error)
+    }
   }
 
-  if (!isOpen) return null
+  if (!visible) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50 bg-modal">
       <div className="bg-dark border border-gray-light rounded-lg w-96 p-4 relative text-white">
         <button
-          onClick={onClose}
+          onClick={() => {
+            dispatch(resetSessionWizard())
+            onClose()
+          }}
           className="absolute top-3 right-2 text-white bg-transparent border-0 cursor-pointer"
         >
           <X size={16} color="#B5B5B5" />
@@ -38,28 +68,39 @@ const SessionWizadModal: React.FC<SessionWizadModalProps> = ({ isOpen, onClose }
         </h2>
 
         <div>
-          <img src={setting} alt="" className="m-auto flex" />
+          <img src={setting} alt="settings-icon" className="m-auto flex" />
         </div>
 
         {step === 1 && (
-          <Step1 selectedProtocol={selectedProtocol} setSelectedProtocol={setSelectedProtocol} />
-        )}
-        {step === 2 && (
-          <Step2
-            host={host}
-            setHost={setHost}
-            port={port}
-            setPort={setPort}
-            username={username}
-            setUsername={setUsername}
+          <Step1
+            selectedProtocol={session.protocol}
+            setSelectedProtocol={(value: string) =>
+              dispatch(updateField({ field: 'protocol', value }))
+            }
           />
         )}
+
+        {step === 2 && (
+          <Step2
+            host={session.host}
+            setHost={(value: string) => dispatch(updateField({ field: 'host', value }))}
+            port={session.port}
+            setPort={(value: string) => dispatch(updateField({ field: 'port', value }))}
+            username={session.username}
+            setUsername={(value: string) => dispatch(updateField({ field: 'username', value }))}
+          />
+        )}
+
         {step === 3 && (
           <Step3
-            sessionname={sessionname}
-            setSessionname={setSessionname}
-            discription={description}
-            setDiscription={setDescription}
+            sessionname={session.sessionName}
+            setSessionname={(value: string) =>
+              dispatch(updateField({ field: 'sessionName', value }))
+            }
+            discription={session.description}
+            setDiscription={(value: string) =>
+              dispatch(updateField({ field: 'description', value }))
+            }
           />
         )}
 
@@ -77,7 +118,10 @@ const SessionWizadModal: React.FC<SessionWizadModalProps> = ({ isOpen, onClose }
           </button>
           <button
             className="flex-1 border-0 button-dark-bg w-full h-8 rounded-lg text-white font-medium text-xs cursor-pointer"
-            onClick={onClose}
+            onClick={() => {
+              dispatch(resetSessionWizard())
+              onClose()
+            }}
           >
             Cancel
           </button>

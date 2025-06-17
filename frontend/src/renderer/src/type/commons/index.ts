@@ -29,8 +29,9 @@ export interface SessionToolbarProps {
 
 export interface Step1Props {
   selectedProtocol: string
-  setSelectedProtocol: React.Dispatch<React.SetStateAction<string>> // ✅ add this
+  setSelectedProtocol: (value: string) => void
 }
+
 
 export interface Step2Props {
   host: string
