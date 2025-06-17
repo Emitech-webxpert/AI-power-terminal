@@ -50,13 +50,15 @@ export interface SessionContextModalProps {
     onRenameOpen?:() => void
   }
   
-  export interface SessionContextFileModalProps {
-    isOpen: boolean
-    onClose: () => void
-    onDeleteOpen?: () => void
-    onDuplicate?:() => void
-    onRenameOpen?:() => void
-  }
+export interface SessionContextModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onDeleteOpen?: () => void
+  onOpenQuickConnect?: () => void     
+  onOpenSessionWizad?: () => void     
+  onRenameOpen?: () => void
+}
+
   
   export interface WorkFlowContextModalProps {
     isOpen: boolean

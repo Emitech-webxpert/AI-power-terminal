@@ -1,0 +1,30 @@
+import { useEffect } from 'react'
+
+const useClickOutside = (
+  refs: React.RefObject<HTMLDivElement>[],
+  conditions: boolean[],
+  handlers: (() => void)[]
+) => {
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node
+      
+      refs.forEach((ref, index) => {
+        if (ref.current && !ref.current.contains(target) && conditions[index]) {
+          handlers[index]()
+        }
+      })
+    }
+
+    if (conditions.some(condition => condition)) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [...conditions])
+}
+
+export default 
+    useClickOutside

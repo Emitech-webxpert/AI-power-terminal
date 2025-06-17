@@ -132,7 +132,7 @@ const App: React.FC = () => {
     )
   }
 
-  if (isLoggedIn) {
+  if (!isLoggedIn) {
     return <AuthLayout onLoginSuccess={handleLoginSuccess} />
   }
 
