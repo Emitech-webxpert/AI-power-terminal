@@ -30,7 +30,7 @@ const Step3: React.FC<Step3Props> = ({
       <textarea
         value={discription}
         onChange={(e) => setDiscription(e.target.value)}
-        className="w-full p-2 h-20 rounded bg-dark border border-gray-light text-white"
+        className="w-full p-2 h-20 rounded bg-dark border border-gray-light text-white appearance-none resize-none"
       />
     </div>
   </div>

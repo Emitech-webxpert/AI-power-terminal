@@ -992,7 +992,9 @@
 .h-auto {
   height: auto;
 }
-
+.min-h-full {
+  min-height: 100%;
+}
 .min-h-auto {
   min-height: auto;
 }
@@ -1080,6 +1082,12 @@
 
 .no-underline{
   text-decoration: none;
+}
+.appearance-none{
+  appearance: none;
+}
+.resize-none {
+  resize: none;
 }
 /* Light mode overrides */
 
