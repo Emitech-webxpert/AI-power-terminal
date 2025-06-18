@@ -1,15 +1,23 @@
 import { ipcMain, BrowserWindow, app } from 'electron'
 import { terminalManager } from '../../terminal'
 
+interface CreateTerminalOptions {
+  type?: 'local' | 'ssh'
+  host?: string
+  username?: string
+  port?: number
+  protocol?: string
+}
+
 const terminalIPc = () => {
-  ipcMain.handle('terminal:create', async (_event) => {
+  ipcMain.handle('terminal:create', async (_event, options?: CreateTerminalOptions) => {
     try {
       const window = BrowserWindow.fromWebContents(_event.sender)
       if (!window) {
         throw new Error('No window found')
       }
 
-      const terminalId = terminalManager.createTerminal(window)
+      const terminalId = terminalManager.createTerminal(window, options)
       return { success: true, terminalId }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
@@ -50,6 +58,7 @@ const terminalIPc = () => {
       return { success: false, error: errorMessage }
     }
   })
+
   ipcMain.handle('get_app_version', () => {
     return app.getVersion()
   })
@@ -58,6 +67,5 @@ const terminalIPc = () => {
     console.log('Restart requested from renderer (handled by autoUpdater)')
   })
 }
-
 
 export default terminalIPc

@@ -1,6 +1,5 @@
-// hooks/useSessionHandlers.ts - Fix the 'any' type
 import { AppDispatch } from '@renderer/store'
-import { Session } from '@renderer/type/sshSession' // ✅ Import Session type
+import { Session } from '@renderer/type/sshSession'
 import {
   toggleSessionsExpanded,
   toggleSessionsExpandedInner,
@@ -53,7 +52,30 @@ const useSessionHandlers = (dispatch: AppDispatch) => {
   }
 
   const handleSessionDoubleClick = (session: Session) => {
-    console.log('🎯 Session double clicked:',session)
+    console.log('🎯 Session double clicked:', session)
+    
+    // Extract SSH connection parameters from session
+    const sshParams = {
+      host: session.host,
+      username: session.username,
+      port: typeof session.port === 'string' ? parseInt(session.port, 10) : (session.port || 22),
+      protocol: session.protocol
+    }
+
+    // Create SSH terminal using the global function exposed by TerminalTabs
+    if (window.createSSHTerminal) {
+      window.createSSHTerminal(sshParams)
+    } else {
+      console.warn('createSSHTerminal function not available on window object')
+      // Fallback: try to call it after a short delay
+      setTimeout(() => {
+        if (window.createSSHTerminal) {
+          window.createSSHTerminal(sshParams)
+        } else {
+          console.error('createSSHTerminal function still not available')
+        }
+      }, 100)
+    }
   }
 
   return {

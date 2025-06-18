@@ -1,18 +1,26 @@
 import { useEffect, useRef } from 'react'
 import { Terminal } from 'xterm'
 import { useTitleExtractor } from '@renderer/hooks'
-import type { TerminalAPI } from '@renderer/type/terminal'
+import type { TerminalAPI, SSHParams } from '@renderer/type/terminal'
+
 
 const useShellOutput = (
     terminal: Terminal | null,
+    terminalType: 'local' | 'ssh',
+    sshParams?: SSHParams,
     onTitleChange?: (title: string) => void,
     onClose?: () => void
 ) => {
     const terminalIdRef = useRef<string | null>(null)
     const cleanupFunctionsRef = useRef<(() => void)[]>([])
-    const extractTitle = useTitleExtractor(onTitleChange)
 
-    // Get terminal API with proper typing using the interface
+    // Only use title extractor for local terminals
+    const extractTitle = useTitleExtractor(
+        terminalType === 'local' ? onTitleChange : undefined,
+        terminalType
+    )
+
+    // Get terminal API with proper typing
     const terminalAPI: TerminalAPI = ((window as unknown) as { api: { terminal: TerminalAPI } }).api.terminal
 
     useEffect(() => {
@@ -25,8 +33,12 @@ const useShellOutput = (
             }
         })
 
-        // Connect to shell
-        connectToShell(terminal)
+        // Connect based on terminal type
+        if (terminalType === 'ssh' && sshParams) {
+            connectToSSH(terminal, sshParams)
+        } else {
+            connectToShell(terminal)
+        }
 
         return () => {
             cleanupFunctionsRef.current.forEach(cleanup => cleanup())
@@ -36,7 +48,7 @@ const useShellOutput = (
                 terminalAPI.closeTerminal(terminalIdRef.current)
             }
         }
-    }, [terminal])
+    }, [terminal, terminalType, sshParams])
 
     const connectToShell = async (term: Terminal) => {
         try {
@@ -59,7 +71,7 @@ const useShellOutput = (
                 const dataCleanup = terminalAPI.onTerminalData((id: string, data: string) => {
                     if (id === result.terminalId) {
                         term.write(data)
-                        extractTitle(data) // Extract title from output
+                        extractTitle(data) // Extract title from output for local terminals only
                     }
                 })
 
@@ -85,6 +97,73 @@ const useShellOutput = (
             term.writeln('💥 Connection error occurred')
             console.error('Shell connection error:', error)
             if (onTitleChange) onTitleChange('Connection Error')
+        }
+    }
+
+    const connectToSSH = async (term: Terminal, params: SSHParams) => {
+        try {
+            // For SSH, we don't set "Connecting..." title - let server handle it naturally
+
+            const result = await terminalAPI.createTerminal({
+                type: 'ssh',
+                host: params.host,
+                username: params.username,
+                port: params.port,
+                protocol: params.protocol
+            })
+
+            if (result.success && result.terminalId) {
+                terminalIdRef.current = result.terminalId
+
+                // Initial size notification
+                setTimeout(() => {
+                    if (term && terminalIdRef.current) {
+                        terminalAPI.resizeTerminal(terminalIdRef.current, term.cols, term.rows)
+                    }
+                }, 200)
+
+                // Listen for SSH output
+                const dataCleanup = terminalAPI.onTerminalData((id: string, data: string) => {
+                    if (id === result.terminalId) {
+                        term.write(data)
+
+                        // Handle SSH authentication prompts
+                        if (data.includes('password:') || data.includes('Password:')) {
+                            // TODO: Show password modal
+                            console.log('SSH Password required')
+                        }
+
+                        if (data.includes('(yes/no)') || data.includes('fingerprint')) {
+                            // TODO: Show host verification modal
+                            console.log('SSH Host verification required')
+                        }
+
+                        // No title extraction for SSH - let server handle naturally
+                    }
+                })
+
+                // Listen for SSH exit
+                const exitCleanup = terminalAPI.onTerminalExit((id: string, exitCode: number) => {
+                    if (id === result.terminalId) {
+                        term.writeln(`\r\n💀 SSH connection closed with code: ${exitCode}`)
+                        terminalIdRef.current = null
+
+                        if (onTitleChange) onTitleChange('SSH Disconnected')
+                        if (onClose) setTimeout(onClose, 1000)
+                    }
+                })
+
+                cleanupFunctionsRef.current.push(dataCleanup, exitCleanup)
+
+            } else {
+                term.writeln('❌ Failed to establish SSH connection')
+                term.writeln('🐛 Error: ' + (result.error || 'Unknown error'))
+                if (onTitleChange) onTitleChange('SSH Connection Failed')
+            }
+        } catch (error) {
+            term.writeln('💥 SSH connection error occurred')
+            console.error('SSH connection error:', error)
+            if (onTitleChange) onTitleChange('SSH Connection Error')
         }
     }
 

@@ -12,7 +12,6 @@ const terminalSlice = createSlice({
     initialState,
 
     reducers: {
-
         addTerminal: (state, action: PayloadAction<Terminal>) => {
             state.terminals.push(action.payload)
             state.activeTerminalId = action.payload.id
@@ -39,6 +38,28 @@ const terminalSlice = createSlice({
             if (terminal) {
                 terminal.title = title
             }
+        },
+
+        // New action to add SSH terminal
+        addSSHTerminal: (state, action: PayloadAction<{
+            id: string
+            title: string
+            sshParams: {
+                host: string
+                username: string
+                port: number
+                protocol?: string
+            }
+        }>) => {
+            const { id, title, sshParams } = action.payload
+            const newTerminal: Terminal = {
+                id,
+                title,
+                type: 'ssh',
+                sshParams
+            }
+            state.terminals.push(newTerminal)
+            state.activeTerminalId = id
         }
     }
 })
@@ -47,7 +68,8 @@ export const {
     addTerminal,
     removeTerminal,
     setActiveTerminal,
-    updateTerminalTitle
+    updateTerminalTitle,
+    addSSHTerminal
 } = terminalSlice.actions
 
 export const selectTerminals = (state: { terminal: TerminalState }) => state.terminal.terminals
@@ -55,6 +77,10 @@ export const selectActiveTerminalId = (state: { terminal: TerminalState }) => st
 export const selectActiveTerminal = (state: { terminal: TerminalState }) => {
     const { terminals, activeTerminalId } = state.terminal
     return terminals.find(t => t.id === activeTerminalId) || null
+}
+
+export const selectTerminalById = (state: { terminal: TerminalState }, terminalId: string) => {
+    return state.terminal.terminals.find(t => t.id === terminalId) || null
 }
 
 export default terminalSlice.reducer

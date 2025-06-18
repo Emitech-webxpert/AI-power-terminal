@@ -1,15 +1,39 @@
 export interface TerminalAPI {
-  createTerminal: () => Promise<{ success: boolean; terminalId?: string; error?: string }>
-  writeToTerminal: (terminalId: string, data: string) => Promise<{ success: boolean }>
-  resizeTerminal: (terminalId: string, cols: number, rows: number) => Promise<{ success: boolean }>
-  closeTerminal: (terminalId: string) => Promise<{ success: boolean }>
-  onTerminalData: (callback: (terminalId: string, data: string) => void) => () => void
-  onTerminalExit: (callback: (terminalId: string, exitCode: number) => void) => () => void
+  createTerminal: (connectionParams?: {
+    type: 'ssh'
+    host: string
+    username: string
+    port: number
+    protocol?: string
+  }) => Promise<{
+    success: boolean
+    terminalId?: string
+    error?: string
+  }>
+  writeToTerminal: (terminalId: string, data: string) => void
+  resizeTerminal: (terminalId: string, cols: number, rows: number) => void
+  closeTerminal: (terminalId: string) => void
+  onTerminalData: (callback: (id: string, data: string) => void) => () => void
+  onTerminalExit: (callback: (id: string, exitCode: number) => void) => () => void
+}
+
+export interface SSHParams {
+  host: string
+  username: string
+  port: number
+  protocol?: string
 }
 
 export interface Terminal {
   id: string
   title: string
+  type: 'local' | 'ssh'
+  sshParams?: {
+    host: string
+    username: string
+    port: number
+    protocol?: string
+  }
 }
 
 export interface TerminalState {
@@ -22,6 +46,14 @@ export interface ThemeState {
 }
 
 export interface TerminalComponentProps {
+  terminalId: string
+  terminalType: 'local' | 'ssh'
+  sshParams?: {
+    host: string
+    username: string
+    port: number
+    protocol?: string
+  }
   onClose?: () => void
   onTitleChange?: (title: string) => void
 }

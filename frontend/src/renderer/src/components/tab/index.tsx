@@ -4,6 +4,7 @@ import type { TerminalTabsProps } from '@renderer/type/terminal'
 import { useAppDispatch, useAppSelector } from '@renderer/store/hooks'
 import {
   addTerminal,
+  addSSHTerminal,
   removeTerminal,
   setActiveTerminal,
   updateTerminalTitle,
@@ -52,12 +53,31 @@ const TerminalTabs: React.FC<TerminalTabsProps> = ({ className }) => {
     setTerminalToClose
   } = useTerminalTabs()
 
+  // Create local terminal (existing functionality)
   const createTerminal = () => {
     const newTerminal = {
       id: `terminal-${Date.now()}`,
-      title: 'Connecting...'
+      title: 'Connecting...',
+      type: 'local' as const
     }
     dispatch(addTerminal(newTerminal))
+  }
+
+  // Create SSH terminal (new functionality)
+  const createSSHTerminal = (sshParams: {
+    host: string
+    username: string
+    port: number
+    protocol?: string
+  }) => {
+    const terminalId = `ssh-terminal-${Date.now()}`
+    const title = `${sshParams.username}@${sshParams.host}`
+    
+    dispatch(addSSHTerminal({
+      id: terminalId,
+      title,
+      sshParams
+    }))
   }
 
   const handleUpdateTerminalTitle = (terminalId: string, newTitle: string) => {
@@ -81,7 +101,15 @@ const TerminalTabs: React.FC<TerminalTabsProps> = ({ className }) => {
   }
 
   useEffect(() => {
-    ;(window as { createLocalShell?: () => void }).createLocalShell = createTerminal
+    // Expose functions to window for external access
+    ;(window as { 
+      createLocalShell?: () => void
+      createSSHTerminal?: (sshParams: any) => void 
+    }).createLocalShell = createTerminal
+    ;(window as { 
+      createLocalShell?: () => void
+      createSSHTerminal?: (sshParams: any) => void 
+    }).createSSHTerminal = createSSHTerminal
   }, [])
 
   return (
@@ -110,8 +138,7 @@ const TerminalTabs: React.FC<TerminalTabsProps> = ({ className }) => {
               onContextMenu={handleSessionsRightClick}
             >
               <span className="flex gap-1 justify-center items-center">
-                <span className="dots"></span>
-                {/* <span className="dots green"></span> */}
+                <span className={`dots ${terminal.type === 'ssh' ? 'blue' : ''}`}></span>
                 {terminal.title}
               </span>
 
@@ -157,6 +184,9 @@ const TerminalTabs: React.FC<TerminalTabsProps> = ({ className }) => {
             className={`terminal-instance ${terminal.id === activeTerminalId ? 'block' : 'hidden'}`}
           >
             <TerminalInstance
+              terminalId={terminal.id}
+              terminalType={terminal.type}
+              sshParams={terminal.sshParams}
               onClose={() => handleCloseTerminal(terminal.id)}
               onTitleChange={(title) => handleUpdateTerminalTitle(terminal.id, title)}
             />

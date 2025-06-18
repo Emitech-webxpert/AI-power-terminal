@@ -1,18 +1,26 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
+interface CreateTerminalOptions {
+  type?: 'local' | 'ssh'
+  host?: string
+  username?: string
+  port?: number
+  protocol?: string
+}
+
 // Secure Terminal API - NO direct ipcRenderer exposure
 const terminalAPI = {
-  // Terminal lifecycle
-  createTerminal: () => ipcRenderer.invoke('terminal:create'),
+  // Terminal lifecycle - Updated to support SSH options
+  createTerminal: (options?: CreateTerminalOptions) => ipcRenderer.invoke('terminal:create', options),
   closeTerminal: (terminalId: string) => ipcRenderer.invoke('terminal:close', terminalId),
   
   // Terminal input/output
-  writeToTerminal: (terminalId: string, data: string) => 
+  writeToTerminal: (terminalId: string, data: string) =>
     ipcRenderer.invoke('terminal:write', terminalId, data),
   
   // Terminal sizing
-  resizeTerminal: (terminalId: string, cols: number, rows: number) => 
+  resizeTerminal: (terminalId: string, cols: number, rows: number) =>
     ipcRenderer.invoke('terminal:resize', terminalId, cols, rows),
   
   // Listen for terminal output (secure event listener)
