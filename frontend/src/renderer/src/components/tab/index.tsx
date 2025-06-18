@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import TerminalInstance from '@renderer/components/terminalInstance'
 import type { TerminalTabsProps } from '@renderer/type/terminal'
 import { useAppDispatch, useAppSelector } from '@renderer/store/hooks'
@@ -18,12 +18,29 @@ import {
   RenameModal,
   TabContextModal
 } from '@modals/index'
+import HostKeyModal from '@modals/hostAuthentication'
+import SSHPasswordModal from '@modals/sshPassword'
 import { useTerminalTabs } from '@renderer/hooks/terminalTab'
 
 const TerminalTabs: React.FC<TerminalTabsProps> = ({ className }) => {
   const dispatch = useAppDispatch()
   const terminals = useAppSelector(selectTerminals)
   const activeTerminalId = useAppSelector(selectActiveTerminalId)
+
+  // SSH Modal states (only for SSH2 protocol)
+  const [sshPasswordModal, setSSHPasswordModal] = useState<{
+    isOpen: boolean
+    terminalId: string
+    hostname: string
+    username: string
+  }>({ isOpen: false, terminalId: '', hostname: '', username: '' })
+
+  const [hostKeyModal, setHostKeyModal] = useState<{
+    isOpen: boolean
+    terminalId: string
+    hostname: string
+    hostKey: string
+  }>({ isOpen: false, terminalId: '', hostname: '', hostKey: '' })
 
   const {
     tabBarRef,
@@ -63,21 +80,67 @@ const TerminalTabs: React.FC<TerminalTabsProps> = ({ className }) => {
     dispatch(addTerminal(newTerminal))
   }
 
-  // Create SSH terminal (new functionality)
-  const createSSHTerminal = (sshParams: {
+  // Create remote terminal (SSH2 or Telnet)
+  const createRemoteTerminal = (connectionParams: {
+    protocol: 'SSH2' | 'Telnet'
     host: string
-    username: string
+    username?: string
     port: number
-    protocol?: string
   }) => {
-    const terminalId = `ssh-terminal-${Date.now()}`
-    const title = `${sshParams.username}@${sshParams.host}`
+    const terminalId = `${connectionParams.protocol.toLowerCase()}-terminal-${Date.now()}`
     
+    let title: string
+    let terminalType: 'ssh' | 'telnet'
+    
+    if (connectionParams.protocol === 'SSH2') {
+      title = `${connectionParams.username}@${connectionParams.host}`
+      terminalType = 'ssh'
+    } else {
+      title = `telnet://${connectionParams.host}:${connectionParams.port}`
+      terminalType = 'telnet'
+    }
+    
+    // Use addSSHTerminal for both SSH and Telnet (it's a generic remote terminal action)
     dispatch(addSSHTerminal({
       id: terminalId,
       title,
-      sshParams
+      sshParams: {
+        protocol: connectionParams.protocol,
+        host: connectionParams.host,
+        username: connectionParams.username || '',
+        port: connectionParams.port
+      }
     }))
+  }
+
+  // SSH Modal handlers (only for SSH2 protocol)
+  const handleSSHPasswordSubmit = async (password: string) => {
+    if (sshPasswordModal.terminalId) {
+      const terminalAPI = ((window as unknown) as { api: { terminal: any } }).api.terminal
+      await terminalAPI.submitSSHPassword(sshPasswordModal.terminalId, password)
+      setSSHPasswordModal({ isOpen: false, terminalId: '', hostname: '', username: '' })
+    }
+  }
+
+  const handleSSHPasswordCancel = () => {
+    setSSHPasswordModal({ isOpen: false, terminalId: '', hostname: '', username: '' })
+  }
+
+  const handleHostKeyAccept = async () => {
+    if (hostKeyModal.terminalId) {
+      const terminalAPI = ((window as unknown) as { api: { terminal: any } }).api.terminal
+      await terminalAPI.acceptSSHHostKey(hostKeyModal.terminalId)
+      setHostKeyModal({ isOpen: false, terminalId: '', hostname: '', hostKey: '' })
+    }
+  }
+
+  const handleHostKeyCancel = () => {
+    setHostKeyModal({ isOpen: false, terminalId: '', hostname: '', hostKey: '' })
+  }
+
+  const handleHostKeyView = () => {
+    // You can implement a detailed host key view here
+    console.log('Host key:', hostKeyModal.hostKey)
   }
 
   const handleUpdateTerminalTitle = (terminalId: string, newTitle: string) => {
@@ -101,15 +164,41 @@ const TerminalTabs: React.FC<TerminalTabsProps> = ({ className }) => {
   }
 
   useEffect(() => {
+    const terminalAPI = ((window as unknown) as { api: { terminal: any } }).api.terminal
+
     // Expose functions to window for external access
     ;(window as { 
       createLocalShell?: () => void
-      createSSHTerminal?: (sshParams: any) => void 
+      createRemoteTerminal?: (connectionParams: any) => void 
     }).createLocalShell = createTerminal
     ;(window as { 
       createLocalShell?: () => void
-      createSSHTerminal?: (sshParams: any) => void 
-    }).createSSHTerminal = createSSHTerminal
+      createRemoteTerminal?: (connectionParams: any) => void 
+    }).createRemoteTerminal = createRemoteTerminal
+
+    // Listen for SSH authentication events (only for SSH2 protocol)
+    const passwordCleanup = terminalAPI.onSSHPasswordRequired((terminalId: string, data: { hostname: string, username: string }) => {
+      setSSHPasswordModal({
+        isOpen: true,
+        terminalId,
+        hostname: data.hostname,
+        username: data.username
+      })
+    })
+
+    const hostKeyCleanup = terminalAPI.onSSHHostVerificationRequired((terminalId: string, data: { hostname: string, hostKey: string }) => {
+      setHostKeyModal({
+        isOpen: true,
+        terminalId,
+        hostname: data.hostname,
+        hostKey: data.hostKey
+      })
+    })
+
+    return () => {
+      passwordCleanup()
+      hostKeyCleanup()
+    }
   }, [])
 
   return (
@@ -138,7 +227,10 @@ const TerminalTabs: React.FC<TerminalTabsProps> = ({ className }) => {
               onContextMenu={handleSessionsRightClick}
             >
               <span className="flex gap-1 justify-center items-center">
-                <span className={`dots ${terminal.type === 'ssh' ? 'blue' : ''}`}></span>
+                <span className={`dots ${
+                  terminal.type === 'ssh' ? 'blue' : 
+                  (terminal.type as string) === 'telnet' ? 'green' : ''
+                }`}></span>
                 {terminal.title}
               </span>
 
@@ -194,6 +286,25 @@ const TerminalTabs: React.FC<TerminalTabsProps> = ({ className }) => {
         ))}
       </div>
 
+      {/* SSH Authentication Modals - Only for SSH2 protocol */}
+      <SSHPasswordModal
+        isOpen={sshPasswordModal.isOpen}
+        hostname={sshPasswordModal.hostname}
+        username={sshPasswordModal.username}
+        onSubmit={handleSSHPasswordSubmit}
+        onCancel={handleSSHPasswordCancel}
+      />
+
+      <HostKeyModal
+        isOpen={hostKeyModal.isOpen}
+        hostname={hostKeyModal.hostname}
+        hostKey={hostKeyModal.hostKey}
+        onAccept={handleHostKeyAccept}
+        onCancel={handleHostKeyCancel}
+        onViewKey={handleHostKeyView}
+      />
+
+      {/* Existing Modals */}
       <RenameModal isOpen={isRenameOpen} onClose={() => setIsRenameOpen(false)} />
       <NameModal isOpen={isNameOpen} onClose={() => setIsNameOpen(false)} />
       <CloseModal

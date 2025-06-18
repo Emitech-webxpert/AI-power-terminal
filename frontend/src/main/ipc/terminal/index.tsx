@@ -2,11 +2,11 @@ import { ipcMain, BrowserWindow, app } from 'electron'
 import { terminalManager } from '../../terminal'
 
 interface CreateTerminalOptions {
-  type?: 'local' | 'ssh'
+  type?: 'local' | 'ssh' | 'telnet'
+  protocol?: 'SSH2' | 'Telnet' | 'LocalTerminal'
   host?: string
   username?: string
   port?: number
-  protocol?: string
 }
 
 const terminalIPc = () => {
@@ -55,6 +55,29 @@ const terminalIPc = () => {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       console.error('Failed to close terminal:', error)
+      return { success: false, error: errorMessage }
+    }
+  })
+
+  // SSH-specific handlers (only for SSH2 protocol)
+  ipcMain.handle('ssh:submit-password', async (_event, terminalId: string, password: string) => {
+    try {
+      const success = terminalManager.submitSSHPassword(terminalId, password)
+      return { success }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error('Failed to submit SSH password:', error)
+      return { success: false, error: errorMessage }
+    }
+  })
+
+  ipcMain.handle('ssh:accept-host-key', async (_event, terminalId: string) => {
+    try {
+      const success = terminalManager.acceptSSHHostKey(terminalId)
+      return { success }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error('Failed to accept SSH host key:', error)
       return { success: false, error: errorMessage }
     }
   })

@@ -20,6 +20,18 @@ import {
 } from '@renderer/store/slices/sessionList'
 import { fetchSessions } from '@renderer/store/slices/sessionThunks'
 
+declare global {
+  interface Window {
+    createRemoteTerminal?: (params: {
+      protocol: string
+      host: string
+      username: string
+      port: number
+    }) => void
+    createLocalShell?: () => void
+  }
+}
+
 const useSessionHandlers = (dispatch: AppDispatch) => {
   const handleRenameOpen = () => dispatch(openRename())
   const handleRenameClose = () => dispatch(closeRename())
@@ -54,27 +66,41 @@ const useSessionHandlers = (dispatch: AppDispatch) => {
   const handleSessionDoubleClick = (session: Session) => {
     console.log('🎯 Session double clicked:', session)
     
-    // Extract SSH connection parameters from session
-    const sshParams = {
-      host: session.host,
-      username: session.username,
-      port: typeof session.port === 'string' ? parseInt(session.port, 10) : (session.port || 22),
-      protocol: session.protocol
-    }
+    // Determine the connection type based on protocol
+    const protocol = session.protocol || 'SSH2' // Default to SSH2 for backward compatibility
+    
+    if (protocol === 'LocalTerminal') {
+      // Create local terminal
+      if (window.createLocalShell) {
+        window.createLocalShell()
+      } else {
+        console.warn('createLocalShell function not available on window object')
+      }
+    } else if (protocol === 'SSH2' || protocol === 'Telnet') {
+      // Create remote terminal (SSH2 or Telnet)
+      const connectionParams = {
+        protocol: protocol,
+        host: session.host,
+        username: session.username,
+        port: typeof session.port === 'string' ? parseInt(session.port, 10) : (session.port || (protocol === 'SSH2' ? 22 : 23))
+      }
 
-    // Create SSH terminal using the global function exposed by TerminalTabs
-    if (window.createSSHTerminal) {
-      window.createSSHTerminal(sshParams)
+      // Create remote terminal using the global function exposed by TerminalTabs
+      if (window.createRemoteTerminal) {
+        window.createRemoteTerminal(connectionParams)
+      } else {
+        console.warn('createRemoteTerminal function not available on window object')
+        // Fallback: try to call it after a short delay
+        setTimeout(() => {
+          if (window.createRemoteTerminal) {
+            window.createRemoteTerminal(connectionParams)
+          } else {
+            console.error('createRemoteTerminal function still not available')
+          }
+        }, 100)
+      }
     } else {
-      console.warn('createSSHTerminal function not available on window object')
-      // Fallback: try to call it after a short delay
-      setTimeout(() => {
-        if (window.createSSHTerminal) {
-          window.createSSHTerminal(sshParams)
-        } else {
-          console.error('createSSHTerminal function still not available')
-        }
-      }, 100)
+      console.error('Unknown protocol:', protocol)
     }
   }
 

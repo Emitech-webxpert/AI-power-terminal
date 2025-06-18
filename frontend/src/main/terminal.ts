@@ -1,30 +1,33 @@
 import * as pty from 'node-pty'
-import { Client } from 'ssh2'
+import { Client, ClientChannel } from 'ssh2'
+import { Telnet } from 'telnet-client'
 import { BrowserWindow } from 'electron'
 import { randomUUID } from 'crypto'
 
-interface SSHParams {
-  host: string
-  username: string
-  port: number
-  protocol?: string
-}
-
 interface CreateTerminalOptions {
-  type?: 'local' | 'ssh'
+  type?: 'local' | 'ssh' | 'telnet'
+  protocol?: 'SSH2' | 'Telnet' | 'LocalTerminal'
   host?: string
   username?: string
   port?: number
-  protocol?: string
 }
 
 interface Terminal {
   id: string
-  type: 'local' | 'ssh'
+  type: 'local' | 'ssh' | 'telnet'
   ptyProcess?: pty.IPty
   sshClient?: Client
-  sshStream?: any
+  sshStream?: ClientChannel
+  telnetClient?: Telnet
   window: BrowserWindow
+  // SSH specific properties
+  sshParams?: {
+    host: string
+    username: string
+    port: number
+  }
+  waitingForPassword?: boolean
+  authFinishCallback?: (responses: string[]) => void
 }
 
 class TerminalManager {
@@ -32,187 +35,179 @@ class TerminalManager {
 
   createTerminal(window: BrowserWindow, options?: CreateTerminalOptions): string {
     const terminalId = randomUUID()
-    const terminalType = options?.type || 'local'
+    
+    let terminalType: 'local' | 'ssh' | 'telnet' = 'local'
+    if (options?.protocol === 'SSH2') terminalType = 'ssh'
+    else if (options?.protocol === 'Telnet') terminalType = 'telnet'
+    else if (options?.type) terminalType = options.type
 
     if (terminalType === 'ssh' && options) {
-      return this.createSSHTerminal(window, terminalId, {
-        host: options.host!,
-        username: options.username!,
-        port: options.port || 22,
-        protocol: options.protocol
-      })
+      return this.createSSHTerminal(window, terminalId, options)
+    } else if (terminalType === 'telnet' && options) {
+      return this.createTelnetTerminal(window, terminalId, options)
     } else {
       return this.createLocalTerminal(window, terminalId)
     }
   }
 
   private createLocalTerminal(window: BrowserWindow, terminalId: string): string {
-    // Cross-platform shell detection
-    let shell: string
-    let args: string[] = []
+    let shell = process.platform === 'win32' 
+      ? (process.env.ComSpec || 'cmd.exe')
+      : (process.env.SHELL || (process.platform === 'darwin' ? '/bin/zsh' : '/bin/bash'))
 
-    if (process.platform === 'win32') {
-      // Windows: Try PowerShell first, fallback to cmd
-      shell = process.env.ComSpec || 'cmd.exe'
-      // Check if PowerShell is available
-      try {
-        const pwsh = 'powershell.exe'
-        shell = pwsh
-      } catch {
-        shell = 'cmd.exe'
-      }
-    } else if (process.platform === 'darwin') {
-      // macOS: Use zsh (default since macOS 10.15) or bash
-      shell = process.env.SHELL || '/bin/zsh'
-    } else {
-      // Linux: Use user's default shell or bash
-      shell = process.env.SHELL || '/bin/bash'
-    }
-
-    // Set appropriate working directory
     const cwd = process.env.HOME || process.env.USERPROFILE || process.cwd()
 
     try {
-      // Create new pty process
-      const ptyProcess = pty.spawn(shell, args, {
+      const ptyProcess = pty.spawn(shell, [], {
         name: 'xterm-color',
         cols: 80,
         rows: 24,
-        cwd: cwd,
-        env: {
-          ...process.env,
-          TERM: 'xterm-256color',
-          COLORTERM: 'truecolor'
-        }
+        cwd,
+        env: { ...process.env, TERM: 'xterm-256color', COLORTERM: 'truecolor' }
       })
 
-      // Store terminal reference
-      const terminal: Terminal = {
-        id: terminalId,
-        type: 'local',
-        ptyProcess,
-        window
-      }
-
+      const terminal: Terminal = { id: terminalId, type: 'local', ptyProcess, window }
       this.terminals.set(terminalId, terminal)
 
-      // Listen for data from pty and send to renderer
       ptyProcess.onData((data: string) => {
         window.webContents.send('terminal:data', terminalId, data)
       })
 
-      // Listen for pty exit
       ptyProcess.onExit(({ exitCode }: { exitCode: number }) => {
         window.webContents.send('terminal:exit', terminalId, exitCode)
         this.terminals.delete(terminalId)
       })
 
       return terminalId
-
     } catch (error) {
       console.error('Failed to create local terminal:', error)
       throw error
     }
   }
 
-  private createSSHTerminal(window: BrowserWindow, terminalId: string, sshParams: SSHParams): string {
-    try {
-      const sshClient = new Client()
+  private createSSHTerminal(window: BrowserWindow, terminalId: string, options: CreateTerminalOptions): string {
+    const sshClient = new Client()
+    const terminal: Terminal = { id: terminalId, type: 'ssh', sshClient, window }
+    this.terminals.set(terminalId, terminal)
+
+    // Store connection params for retry
+    terminal.sshParams = {
+      host: options.host!,
+      username: options.username!,
+      port: options.port || 22
+    }
+
+    const connectionConfig = {
+      host: options.host!,
+      port: options.port || 22,
+      username: options.username!,
+      tryKeyboard: true,
+      readyTimeout: 20000
+    }
+
+    sshClient.on('error', (err) => {
+      console.error('SSH connection error:', err)
       
-      // Store terminal reference
-      const terminal: Terminal = {
-        id: terminalId,
-        type: 'ssh',
-        sshClient,
-        window
+      if (err.message.includes('authentication') || err.message.includes('Authentication')) {
+        terminal.waitingForPassword = true
+        window.webContents.send('ssh:password-required', terminalId, {
+          hostname: options.host!,
+          username: options.username!
+        })
+        return
       }
+      
+      // For non-auth errors, show error but keep terminal open
+      window.webContents.send('terminal:data', terminalId, `Connection failed: ${err.message}\r\n`)
+    })
 
-      this.terminals.set(terminalId, terminal)
+    sshClient.on('keyboard-interactive', (_name, _instructions, _lang, _prompts, finish) => {
+      window.webContents.send('ssh:password-required', terminalId, {
+        hostname: options.host!,
+        username: options.username!
+      })
+      terminal.authFinishCallback = finish
+    })
 
-      // SSH connection configuration
-      const connectionConfig = {
-        host: sshParams.host,
-        port: sshParams.port,
-        username: sshParams.username,
-        // Note: For now, we'll handle authentication through the terminal
-        // In production, you might want to handle key-based auth here
-        tryKeyboard: true,
-        readyTimeout: 20000
-      }
+    sshClient.on('ready', () => {
+      delete terminal.waitingForPassword
 
-      sshClient.on('ready', () => {
-        console.log('SSH connection established')
-        window.webContents.send('terminal:data', terminalId, `Connected to ${sshParams.username}@${sshParams.host}\r\n`)
+      sshClient.shell((err, stream) => {
+        if (err) {
+          window.webContents.send('terminal:data', terminalId, `Failed to create shell: ${err.message}\r\n`)
+          return
+        }
 
-        // Create shell session
-        sshClient.shell((err, stream) => {
-          if (err) {
-            console.error('SSH shell error:', err)
-            window.webContents.send('terminal:data', terminalId, `Failed to create shell: ${err.message}\r\n`)
-            return
-          }
+        terminal.sshStream = stream
 
-          // Store stream reference
-          terminal.sshStream = stream
+        stream.on('data', (data: Buffer) => {
+          window.webContents.send('terminal:data', terminalId, data.toString())
+        })
 
-          // Handle stream data (output from remote server)
-          stream.on('data', (data: Buffer) => {
-            window.webContents.send('terminal:data', terminalId, data.toString())
-          })
+        stream.on('close', () => {
+          window.webContents.send('terminal:exit', terminalId, 0)
+          this.terminals.delete(terminalId)
+        })
 
-          // Handle stream close
-          stream.on('close', () => {
-            console.log('SSH stream closed')
-            window.webContents.send('terminal:exit', terminalId, 0)
-            this.terminals.delete(terminalId)
-          })
-
-          // Handle stream errors
-          stream.on('error', (err: Error) => {
-            console.error('SSH stream error:', err)
-            window.webContents.send('terminal:data', terminalId, `Stream error: ${err.message}\r\n`)
-          })
+        stream.on('error', (err: Error) => {
+          window.webContents.send('terminal:data', terminalId, `Stream error: ${err.message}\r\n`)
         })
       })
+    })
 
-      sshClient.on('error', (err) => {
-        console.error('SSH connection error:', err)
-        window.webContents.send('terminal:data', terminalId, `Connection failed: ${err.message}\r\n`)
-        window.webContents.send('terminal:exit', terminalId, 1)
-        this.terminals.delete(terminalId)
-      })
+    sshClient.connect(connectionConfig)
+    return terminalId
+  }
 
-      sshClient.on('end', () => {
-        console.log('SSH connection ended')
-        window.webContents.send('terminal:exit', terminalId, 0)
-        this.terminals.delete(terminalId)
-      })
+  private createTelnetTerminal(window: BrowserWindow, terminalId: string, options: CreateTerminalOptions): string {
+    const telnetClient = new Telnet()
+    const terminal: Terminal = { id: terminalId, type: 'telnet', telnetClient, window }
+    this.terminals.set(terminalId, terminal)
 
-      // Start the SSH connection
-      sshClient.connect(connectionConfig)
-
-      return terminalId
-
-    } catch (error) {
-      console.error('Failed to create SSH terminal:', error)
-      throw error
+    const connectionParams = {
+      host: options.host!,
+      port: options.port || 23,
+      timeout: 20000,
+      negotiationMandatory: false,
+      irs: '\r\n',
+      ors: '\n'
     }
+
+    window.webContents.send('terminal:data', terminalId, `Connecting to ${options.host}:${options.port || 23}...\r\n`)
+
+    telnetClient.connect(connectionParams)
+      .then(() => {
+        telnetClient.on('data', (data: Buffer) => {
+          window.webContents.send('terminal:data', terminalId, data.toString())
+        })
+
+        telnetClient.on('timeout', () => {
+          window.webContents.send('terminal:data', terminalId, '\r\nConnection timeout\r\n')
+        })
+
+        telnetClient.on('error', (err: Error) => {
+          window.webContents.send('terminal:data', terminalId, `Error: ${err.message}\r\n`)
+        })
+      })
+      .catch((error) => {
+        window.webContents.send('terminal:data', terminalId, `Connection failed: ${error.message}\r\n`)
+      })
+
+    return terminalId
   }
 
   writeToTerminal(terminalId: string, data: string): boolean {
     const terminal = this.terminals.get(terminalId)
-    if (!terminal) {
-      console.error(`Terminal not found: ${terminalId}`)
-      return false
-    }
+    if (!terminal) return false
 
     try {
       if (terminal.type === 'local' && terminal.ptyProcess) {
         terminal.ptyProcess.write(data)
       } else if (terminal.type === 'ssh' && terminal.sshStream) {
         terminal.sshStream.write(data)
+      } else if (terminal.type === 'telnet' && terminal.telnetClient) {
+        terminal.telnetClient.send(data)
       } else {
-        console.error(`Terminal ${terminalId} not properly initialized`)
         return false
       }
       return true
@@ -224,10 +219,7 @@ class TerminalManager {
 
   resizeTerminal(terminalId: string, cols: number, rows: number): boolean {
     const terminal = this.terminals.get(terminalId)
-    if (!terminal) {
-      console.error(`Terminal not found: ${terminalId}`)
-      return false
-    }
+    if (!terminal) return false
 
     try {
       if (terminal.type === 'local' && terminal.ptyProcess) {
@@ -244,21 +236,16 @@ class TerminalManager {
 
   closeTerminal(terminalId: string): boolean {
     const terminal = this.terminals.get(terminalId)
-    if (!terminal) {
-      console.error(`Terminal not found: ${terminalId}`)
-      return false
-    }
+    if (!terminal) return false
 
     try {
       if (terminal.type === 'local' && terminal.ptyProcess) {
         terminal.ptyProcess.kill()
       } else if (terminal.type === 'ssh') {
-        if (terminal.sshStream) {
-          terminal.sshStream.end()
-        }
-        if (terminal.sshClient) {
-          terminal.sshClient.end()
-        }
+        terminal.sshStream?.end()
+        terminal.sshClient?.end()
+      } else if (terminal.type === 'telnet' && terminal.telnetClient) {
+        terminal.telnetClient.end()
       }
       this.terminals.delete(terminalId)
       return true
@@ -268,7 +255,95 @@ class TerminalManager {
     }
   }
 
-  // Clean up all terminals when app closes
+  submitSSHPassword(terminalId: string, password: string): boolean {
+    const terminal = this.terminals.get(terminalId)
+    if (!terminal || terminal.type !== 'ssh') return false
+
+    try {
+      const authFinishCallback = terminal.authFinishCallback
+      if (authFinishCallback) {
+        authFinishCallback([password])
+        delete terminal.authFinishCallback
+        return true
+      }
+
+      if (terminal.waitingForPassword) {
+        const sshParams = terminal.sshParams
+        if (!sshParams) return false
+
+        const newClient = new Client()
+        terminal.sshClient = newClient
+        delete terminal.waitingForPassword
+
+        const connectionConfig = {
+          host: sshParams.host,
+          port: sshParams.port,
+          username: sshParams.username,
+          password: password,
+          readyTimeout: 20000
+        }
+
+        newClient.on('ready', () => {
+          newClient.shell((err, stream) => {
+            if (err) {
+              terminal.window.webContents.send('terminal:data', terminalId, `Failed to create shell: ${err.message}\r\n`)
+              return
+            }
+
+            terminal.sshStream = stream
+
+            stream.on('data', (data: Buffer) => {
+              terminal.window.webContents.send('terminal:data', terminalId, data.toString())
+            })
+
+            stream.on('close', () => {
+              terminal.window.webContents.send('terminal:exit', terminalId, 0)
+              this.terminals.delete(terminalId)
+            })
+
+            stream.on('error', (err: Error) => {
+              terminal.window.webContents.send('terminal:data', terminalId, `Stream error: ${err.message}\r\n`)
+            })
+          })
+        })
+
+        newClient.on('error', (err) => {
+          if (err.message.includes('Authentication failure')) {
+            terminal.window.webContents.send('terminal:data', terminalId, `Authentication failed. Please check your password.\r\n`)
+            terminal.waitingForPassword = true
+          } else {
+            terminal.window.webContents.send('terminal:data', terminalId, `Connection failed: ${err.message}\r\n`)
+          }
+        })
+
+        newClient.connect(connectionConfig)
+        return true
+      }
+
+      return false
+    } catch (error) {
+      console.error(`Failed to submit SSH password for terminal ${terminalId}:`, error)
+      return false
+    }
+  }
+
+  // Handle SSH host key acceptance
+  acceptSSHHostKey(terminalId: string): boolean {
+    const terminal = this.terminals.get(terminalId)
+    if (!terminal || terminal.type !== 'ssh') {
+      console.error(`SSH terminal not found: ${terminalId}`)
+      return false
+    }
+
+    try {
+      console.log(`Host key accepted for terminal ${terminalId}`)
+      return true
+    } catch (error) {
+      console.error(`Failed to accept SSH host key for terminal ${terminalId}:`, error)
+      return false
+    }
+  }
+
   closeAllTerminals(): void {
     for (const [terminalId] of this.terminals) {
       this.closeTerminal(terminalId)
@@ -280,5 +355,4 @@ class TerminalManager {
   }
 }
 
-// Export singleton instance
 export const terminalManager = new TerminalManager()

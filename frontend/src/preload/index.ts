@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
 interface CreateTerminalOptions {
-  type?: 'local' | 'ssh'
+  type?: 'local' | 'ssh' | 'telnet'
   host?: string
   username?: string
   port?: number
@@ -39,12 +39,34 @@ const terminalAPI = {
     
     // Return cleanup function  
     return () => ipcRenderer.removeListener('terminal:exit', listener)
+  },
+
+  // SSH-specific methods
+  submitSSHPassword: (terminalId: string, password: string) => 
+    ipcRenderer.invoke('ssh:submit-password', terminalId, password),
+  
+  acceptSSHHostKey: (terminalId: string) => 
+    ipcRenderer.invoke('ssh:accept-host-key', terminalId),
+
+  // SSH event listeners
+  onSSHPasswordRequired: (callback: (terminalId: string, data: { hostname: string, username: string }) => void) => {
+    const listener = (_: any, terminalId: string, data: any) => callback(terminalId, data)
+    ipcRenderer.on('ssh:password-required', listener)
+    return () => ipcRenderer.removeListener('ssh:password-required', listener)
+  },
+
+  onSSHHostVerificationRequired: (callback: (terminalId: string, data: { hostname: string, hostKey: string }) => void) => {
+    const listener = (_: any, terminalId: string, data: any) => callback(terminalId, data)
+    ipcRenderer.on('ssh:host-verification-required', listener)
+    return () => ipcRenderer.removeListener('ssh:host-verification-required', listener)
   }
 }
 
 // Custom APIs for renderer
 const api = {
-  terminal: terminalAPI  // Secure terminal API only
+  terminal: terminalAPI,  // Secure terminal API only
+  NODE_SERVER_URL: process.env.NODE_SERVER_URL || '',
+  AI_SERVER_URL: process.env.AI_SERVER_URL || ''
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to renderer

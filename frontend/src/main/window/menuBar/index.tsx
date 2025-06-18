@@ -17,7 +17,6 @@ function createApplicationMenu(): void {
           accelerator: 'CmdOrCtrl+Q',
           click: () => {
             console.log('Quick connect clicked')
-            // Add quick connect functionality later
           }
         },
         {
