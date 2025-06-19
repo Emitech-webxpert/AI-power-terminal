@@ -1,4 +1,4 @@
-import TerminalLogs from '@models/terminalLogModel';
+import TerminalLogs from '@models/terminalLog';
 
 const getTerminalLogById = async (id: string) => {
   try {

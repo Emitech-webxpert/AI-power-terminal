@@ -1,2 +1,2 @@
-export * as userController from '@controllers/userController'
-export * as sshConnectionController from '@controllers/sshConnectionController'
+export * as userController from '@controllers/user'
+export * as sshConnectionController from '@controllers/sshConnection'

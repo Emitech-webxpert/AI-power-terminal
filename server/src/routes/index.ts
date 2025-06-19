@@ -1,7 +1,7 @@
 import express from 'express';
-import userRoutes from '@routes/userRoutes';
-import terminalLogRoutes from '@routes/terminalLogRoutes';
-import sshConnectionRoute from '@routes/sshConnectionRoutes'
+import userRoutes from '@routes/user';
+import terminalLogRoutes from '@routes/terminalLog';
+import sshConnectionRoute from '@routes/sshConnection'
 
 const router = express.Router();
 
