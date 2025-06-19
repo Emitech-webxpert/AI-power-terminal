@@ -1,6 +1,6 @@
 import sequelize from '@db/database';
-import User from '@models/userModel';
-import TerminalLog from '@models/terminalLogModel';
+import User from '@models/user';
+import TerminalLog from '@models/terminalLog';
 
 const setupAssociations = () => {
   User.hasMany(TerminalLog, { 

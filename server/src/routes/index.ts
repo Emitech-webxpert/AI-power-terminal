@@ -1,12 +1,12 @@
 import express from 'express';
-import userRoutes from '@routes/userRoutes';
-import terminalLogRoutes from '@routes/terminalLogRoutes';
-import sshConnectionRoute from '@routes/sshConnectionRoutes'
+import user from '@routes/user';
+import terminalLog from '@routes/terminalLog';
+import sshConnection from '@routes/sshConnection'
 
 const router = express.Router();
 
-router.use('/users', userRoutes);
-router.use('/terminalLog', terminalLogRoutes);
-router.use('/sshConnection', sshConnectionRoute)
+router.use('/users', user);
+router.use('/terminalLog', terminalLog);
+router.use('/sshConnection', sshConnection)
 
 export default router;
