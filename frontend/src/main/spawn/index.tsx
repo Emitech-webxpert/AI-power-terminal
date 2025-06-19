@@ -1,7 +1,7 @@
 import { spawn, ChildProcess } from 'child_process'
 import { app } from 'electron'
 import { join } from 'path'
-import { getEnv, killPort } from '../../shared/utils'
+import { getEnv, killPort } from '@shared/utils'
 
 const platformBinary = (file: string): string =>
   join(process.resourcesPath, process.platform === 'win32' ? `${file}.exe` : file)

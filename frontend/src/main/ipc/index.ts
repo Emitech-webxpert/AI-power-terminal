@@ -1,1 +1,1 @@
-export { default as TerminalIpc } from './terminal'
+export { default as TerminalIpc } from '@main/ipc/terminal'

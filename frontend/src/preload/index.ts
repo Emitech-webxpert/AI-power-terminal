@@ -1,15 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import { CreateTerminalOptions } from '@shared/type'
 
-interface CreateTerminalOptions {
-  type?: 'local' | 'ssh' | 'telnet'
-  host?: string
-  username?: string
-  port?: number
-  protocol?: string
-}
-
-// Secure Terminal API - NO direct ipcRenderer exposure
 const terminalAPI = {
   // Terminal lifecycle - Updated to support SSH options
   createTerminal: (options?: CreateTerminalOptions) => ipcRenderer.invoke('terminal:create', options),

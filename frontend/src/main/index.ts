@@ -1,10 +1,9 @@
 import { app, BrowserWindow } from 'electron'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
-import { createWindow } from './window'
-import { createApplicationMenu } from './window'
-import { TerminalIpc } from './ipc'
-import  {setupAutoUpdater } from './autoUpdater'
-import { setupAllBackgroundServices } from './spawn'
+import { createWindow ,createApplicationMenu} from '@main/window'
+import { TerminalIpc } from '@main/ipc'
+import  {setupAutoUpdater } from '@main/autoUpdater'
+import { setupAllBackgroundServices } from '@main/spawn'
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.electron')

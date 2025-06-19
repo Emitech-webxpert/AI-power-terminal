@@ -1,2 +1,2 @@
-export {default as createApplicationMenu} from './menuBar'
-export {default as createWindow} from './createWindow'
+export {default as createApplicationMenu} from '@main/window/menuBar'
+export {default as createWindow} from '@main/window/createWindow'

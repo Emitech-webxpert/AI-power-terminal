@@ -1,13 +1,6 @@
 import { ipcMain, BrowserWindow, app } from 'electron'
-import { terminalManager } from '../../terminal'
-
-interface CreateTerminalOptions {
-  type?: 'local' | 'ssh' | 'telnet'
-  protocol?: 'SSH2' | 'Telnet' | 'LocalTerminal'
-  host?: string
-  username?: string
-  port?: number
-}
+import { terminalManager } from '@main/terminal'
+import { CreateTerminalOptions } from '@shared/type/terminal'
 
 const terminalIPc = () => {
   ipcMain.handle('terminal:create', async (_event, options?: CreateTerminalOptions) => {
