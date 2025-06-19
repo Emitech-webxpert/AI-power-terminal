@@ -1,5 +1,5 @@
 // components/sidebar/sessionManagement/sessionManager/index.tsx
-import React, { useEffect, useRef } from 'react'
+import React, { useRef } from 'react'
 import { IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io'
 import {
   SessionWizadModal,
@@ -11,45 +11,32 @@ import {
 import { click, clicklight } from '@renderer/assets'
 import { WorkflowManagerProps } from '@renderer/type'
 import SessionToolbar from '@renderer/components/sessionToolbar'
-import SessionHeader from '../SessionHeader'
-import SessionList from '../SessionList'
+import SessionHeader from '@components/sideBar/sessionManagement/SessionHeader'
+import SessionList from '@components/sideBar/sessionManagement/SessionList'
 import { useAppSelector } from '@renderer/store/hooks'
 import { selectIsDark } from '@renderer/store/slices/themeSlice'
 import { useSessionManager } from '@renderer/hooks/index'
 import { useSessionHandler } from '@renderer/hooks/index'
+import useClickOutside from '@renderer/hooks/useClickOutside' 
 
-const SessionManager: React.FC<WorkflowManagerProps> = ({ 
-  toggleWorkflowVisibility, 
-  onContextMenuToggle, 
-  sidebarOnRight 
+const SessionManager: React.FC<WorkflowManagerProps> = ({
+  toggleWorkflowVisibility,
+  onContextMenuToggle,
+  sidebarOnRight
 }) => {
-  const sessionModalRef = useRef<HTMLDivElement>(null)
-  const sessionFileModalRef = useRef<HTMLDivElement>(null)
+  const sessionModalRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>
+  const sessionFileModalRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>
 
   const isDark = useAppSelector(selectIsDark)
   const sessionState = useSessionManager(onContextMenuToggle)
   const handlers = useSessionHandler(sessionState.dispatch)
 
-  // Handle click outside for context menus
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node
-      if (sessionModalRef.current && !sessionModalRef.current.contains(target) && sessionState.isSessionContextOpen) {
-        handlers.handleSessionContextClose()
-      }
-      if (sessionFileModalRef.current && !sessionFileModalRef.current.contains(target) && sessionState.isSessionContextOpenFile) {
-        handlers.handleSessionContextCloseFile()
-      }
-    }
-
-    if (sessionState.isSessionContextOpen || sessionState.isSessionContextOpenFile) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [sessionState.isSessionContextOpen, sessionState.isSessionContextOpenFile, handlers])
+  // Use your custom hook instead of the manual useEffect
+  useClickOutside(
+    [sessionModalRef, sessionFileModalRef], // refs array
+    [sessionState.isSessionContextOpen, sessionState.isSessionContextOpenFile], // conditions array
+    [handlers.handleSessionContextClose, handlers.handleSessionContextCloseFile] // handlers array
+  )
 
   return (
     <>
@@ -79,10 +66,11 @@ const SessionManager: React.FC<WorkflowManagerProps> = ({
         {sessionState.isSessionsExpanded && (
           <div className="pb-3">
             <SessionToolbar onSessionWizadClick={handlers.handleSessionWizadClick} />
-            
+
             <div className="px-3 pb-5">
               {/* Sessions Header */}
               <SessionHeader
+                ref={sessionModalRef}
                 isSessionsExpandedInner={sessionState.isSessionsExpandedInner}
                 sessionsLoading={sessionState.sessionsLoading}
                 isSessionContextOpen={sessionState.isSessionContextOpen}
@@ -107,6 +95,7 @@ const SessionManager: React.FC<WorkflowManagerProps> = ({
 
               {/* Sessions List */}
               <SessionList
+                ref={sessionFileModalRef} // Pass ref to SessionList
                 sessions={sessionState.sessions}
                 sessionsLoading={sessionState.sessionsLoading}
                 sessionsError={sessionState.sessionsError}
@@ -126,26 +115,26 @@ const SessionManager: React.FC<WorkflowManagerProps> = ({
       </div>
 
       {/* Modals */}
-      <SessionWizadModal 
-        isOpen={sessionState.isSessionWizadOpen} 
-        onClose={handlers.handleSessionWizadClose} 
+      <SessionWizadModal
+        isOpen={sessionState.isSessionWizadOpen}
+        onClose={handlers.handleSessionWizadClose}
       />
       <DeleteFileFolderModal
         isOpen={sessionState.isDeleteOpen}
         onClose={handlers.handleDeleteClose}
         title={sessionState.deleteTitle}
       />
-      <QuickConnectModal 
-        isOpen={sessionState.isQuickConnectOpen} 
-        onClose={handlers.handleQuickConnectClose} 
+      <QuickConnectModal
+        isOpen={sessionState.isQuickConnectOpen}
+        onClose={handlers.handleQuickConnectClose}
       />
-      <DuplicateModal 
-        isOpen={sessionState.isDuplicateOpen} 
-        onClose={handlers.handleDuplicateClose} 
+      <DuplicateModal
+        isOpen={sessionState.isDuplicateOpen}
+        onClose={handlers.handleDuplicateClose}
       />
-      <RenameModal 
-        isOpen={sessionState.isRenameOpen} 
-        onClose={handlers.handleRenameClose} 
+      <RenameModal
+        isOpen={sessionState.isRenameOpen}
+        onClose={handlers.handleRenameClose}
       />
     </>
   )

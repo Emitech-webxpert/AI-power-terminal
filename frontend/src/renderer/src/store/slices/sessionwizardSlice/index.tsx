@@ -3,7 +3,7 @@ import { SessionData } from '@renderer/type/sshSession'
 
 
 const initialState: SessionData = {
-    userId: '47472f6a-f5c2-4ffe-85d7-a4ec97f44407',
+    userId: '4b85c9af-a85c-4508-b577-378dcd358c7c',
     protocol: '',
     host: '',
     port: '',

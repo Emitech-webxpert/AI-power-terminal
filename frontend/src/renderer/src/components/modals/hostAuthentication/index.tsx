@@ -1,13 +1,5 @@
 import React from 'react'
-
-interface HostKeyModalProps {
-  isOpen: boolean
-  hostname: string
-  hostKey: string
-  onAccept: () => void
-  onCancel: () => void
-  onViewKey: () => void
-}
+import { HostKeyModalProps } from '@renderer/type/sshSession'
 
 const HostKeyModal: React.FC<HostKeyModalProps> = ({
   isOpen,

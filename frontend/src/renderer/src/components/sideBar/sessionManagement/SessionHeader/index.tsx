@@ -1,24 +1,10 @@
-
 import React from 'react'
 import { IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io'
 import { folder } from '@renderer/assets'
 import { SessionContextModal } from '@modals/index'
+import { SessionHeaderProps } from '@renderer/type/sshSession'
 
-interface SessionHeaderProps {
-  isSessionsExpandedInner: boolean
-  sessionsLoading: boolean
-  isSessionContextOpen: boolean
-  // ✅ Remove sessionModalRef from props - no longer needed
-  onSessionsClick: () => void
-  onSessionsRightClick: (e: React.MouseEvent) => void
-  onSessionContextClose: () => void
-  onDeleteOpen: (title: string) => void
-  onQuickConnectClick: () => void
-  onSessionWizardClick: () => void
-  onRenameOpen: () => void
-}
-
-const SessionHeader: React.FC<SessionHeaderProps> = ({
+const SessionHeader = React.forwardRef<HTMLDivElement, SessionHeaderProps>(({
   isSessionsExpandedInner,
   sessionsLoading,
   isSessionContextOpen,
@@ -29,9 +15,10 @@ const SessionHeader: React.FC<SessionHeaderProps> = ({
   onQuickConnectClick,
   onSessionWizardClick,
   onRenameOpen
-}) => {
+}, ref) => {
   return (
     <div
+      ref={ref}
       className="flex items-center mb-1 cursor-pointer gap-1 border-t border-gray-light pt-2 relative"
       onClick={onSessionsClick}
       onContextMenu={onSessionsRightClick}
@@ -46,7 +33,7 @@ const SessionHeader: React.FC<SessionHeaderProps> = ({
         Sessions {sessionsLoading && '(Loading...)'}
       </span>
       {isSessionContextOpen && (
-        <div> {/* ✅ Remove ref from here */}
+        <div>
           <SessionContextModal
             isOpen={isSessionContextOpen}
             onClose={onSessionContextClose}
@@ -59,6 +46,8 @@ const SessionHeader: React.FC<SessionHeaderProps> = ({
       )}
     </div>
   )
-}
+})
+
+SessionHeader.displayName = 'SessionHeader'
 
 export default SessionHeader

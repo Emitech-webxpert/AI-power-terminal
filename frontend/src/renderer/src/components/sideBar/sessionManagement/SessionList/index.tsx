@@ -1,26 +1,9 @@
-// components/sidebar/sessionManagement/SessionList/index.tsx
 import React from 'react'
 import { file } from '@renderer/assets'
-import { Session } from '@renderer/type/sshSession'
 import { SessionContextFileModal } from '@modals/index'
+import { SessionListProps } from '@renderer/type/sshSession'
 
-interface SessionListProps {
-  sessions: Session[]
-  sessionsLoading: boolean
-  sessionsError: string | null
-  isSessionsExpandedInner: boolean
-  selectedFileId: string | null
-  isSessionContextOpenFile: boolean
-  // ✅ Remove sessionFileModalRef from props
-  onSessionRightClick: (e: React.MouseEvent, id: string) => void
-  onSessionDoubleClick: (session: Session) => void
-  onSessionContextCloseFile: () => void
-  onDeleteOpen: (title: string) => void
-  onDuplicate: () => void
-  onRenameOpen: () => void
-}
-
-const SessionList: React.FC<SessionListProps> = ({
+const SessionList = React.forwardRef<HTMLDivElement, SessionListProps>(({
   sessions,
   sessionsLoading,
   sessionsError,
@@ -33,11 +16,14 @@ const SessionList: React.FC<SessionListProps> = ({
   onDeleteOpen,
   onDuplicate,
   onRenameOpen
-}) => {
+}, ref) => {
   if (!isSessionsExpandedInner) return null
 
   return (
-    <div className="ml-6 space-y-1 max-h-64 h-auto min-h-8 overflow-auto overflow-x-visible">
+    <div
+      ref={ref}
+      className="ml-6 space-y-1 max-h-64 h-auto min-h-8 overflow-auto overflow-x-visible"
+    >
       {sessionsLoading ? (
         <div className="text-xs text-light">Loading sessions...</div>
       ) : sessions?.length === 0 ? (
@@ -59,7 +45,7 @@ const SessionList: React.FC<SessionListProps> = ({
               {session?.sessionName || 'Unknown Session'}
             </span>
             {selectedFileId === session?.id && isSessionContextOpenFile && (
-              <div> {/* ✅ Remove ref from here */}
+              <div>
                 <SessionContextFileModal
                   isOpen={isSessionContextOpenFile}
                   onClose={onSessionContextCloseFile}
@@ -74,6 +60,8 @@ const SessionList: React.FC<SessionListProps> = ({
       )}
     </div>
   )
-}
+})
+
+SessionList.displayName = 'SessionList'
 
 export default SessionList

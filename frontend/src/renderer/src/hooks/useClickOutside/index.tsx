@@ -10,12 +10,18 @@ const useClickOutside = (
       const target = event.target as Node
       
       refs.forEach((ref, index) => {
-        if (ref.current && !ref.current.contains(target) && conditions[index]) {
+        if (
+          ref.current && 
+          !ref.current.contains(target) && 
+          conditions[index] &&
+          handlers[index]
+        ) {
           handlers[index]()
         }
       })
     }
 
+    // Only add listener if any condition is true
     if (conditions.some(condition => condition)) {
       document.addEventListener('mousedown', handleClickOutside)
     }
@@ -23,8 +29,7 @@ const useClickOutside = (
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [...conditions])
+  }, [...conditions, ...handlers]) // Also depend on handlers
 }
 
-export default 
-    useClickOutside
+export default useClickOutside
