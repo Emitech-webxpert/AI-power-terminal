@@ -1,5 +1,5 @@
-import TerminalLog from '@models/terminalLogModel';
-import { ICreateTerminalLog } from '@interfaces/terminalLogInterface';
+import TerminalLog from '@models/terminalLog';
+import { ICreateTerminalLog } from '@interfaces/terminalLog';
 
 const createTerminalLog = async (commandData: ICreateTerminalLog) => {
   try {

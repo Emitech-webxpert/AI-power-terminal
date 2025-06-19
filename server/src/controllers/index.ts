@@ -1,2 +1,3 @@
-export * as userController from '@controllers/userController'
-export * as sshConnectionController from '@controllers/sshConnectionController'
+export * as user from '@controllers/user'
+export * as sshConnection from '@controllers/sshConnection'
+export * as TerminalLog from '@controllers/terminalLog'
