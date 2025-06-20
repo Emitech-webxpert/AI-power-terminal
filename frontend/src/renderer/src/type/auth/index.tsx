@@ -30,7 +30,6 @@ export interface ISignInRequest {
   email: string;
   password: string;
 }
-
 export interface AuthState {
   isLoggedIn: boolean
   isLoading: boolean
@@ -42,4 +41,23 @@ export interface AuthState {
   password: string
   keepLoggedIn: boolean
   showPassword: boolean
+}
+
+export interface SignInFormProps {
+  email: string
+  password: string
+  keepLoggedIn: boolean
+  showPassword: boolean
+  isLoading: boolean
+  error: string | null
+  onEmailChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onKeepLoggedInChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onTogglePassword: () => void
+  onSubmit: (e: React.FormEvent) => void
+  onForgotPasswordClick: () => void
+}
+export interface SocialSignInProps {
+  onSignUpClick: () => void
+  disabled?: boolean
 }

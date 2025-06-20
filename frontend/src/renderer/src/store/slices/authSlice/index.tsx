@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { signIn } from '@renderer/constants/services/Auth'
-import { ISignInRequest, AuthState } from '@renderer/type/authTypes'
+import { ISignInRequest, AuthState } from '@renderer/type/auth'
 
 
 export const signInUser = createAsyncThunk(
