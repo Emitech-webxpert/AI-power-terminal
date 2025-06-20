@@ -18,7 +18,7 @@ import {
   openDelete,
   closeDelete
 } from '@renderer/store/slices/sessionList'
-import { fetchSessions } from '@renderer/store/slices/sessionThunks'
+import { fetchSessions } from '@renderer/store/slices/sessionList'
 
 declare global {
   interface Window {

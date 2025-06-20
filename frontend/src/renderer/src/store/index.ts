@@ -2,14 +2,16 @@ import { configureStore } from '@reduxjs/toolkit'
 import themeReducer from './slices/themeSlice'
 import terminalReducer from './slices/terminalSlice'
 import sessionWizardReducer from './slices/sessionwizardSlice'
-import sessionListReducer from './slices/sessionList' 
+import sessionListReducer from './slices/sessionList'
+import AuthReducer from './slices/authSlice'
 
 export const store = configureStore({
   reducer: {
     theme: themeReducer,
     terminal: terminalReducer,
     sessionWizard: sessionWizardReducer,
-    sessionList: sessionListReducer 
+    sessionList: sessionListReducer,
+    auth: AuthReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

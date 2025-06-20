@@ -1,10 +1,10 @@
 import express from 'express';
-import { userController } from '@controllers/index';
+// If '@controllers/user' exports the functions directly:
+import { SignUp, getUserById, SignIn } from '@controllers/user';
 
 const router = express.Router();
-
-router.post('/createUser', userController.createUserController);
-
-router.get('/:id', userController.getUserByIdController);
+router.post('/signUp', SignUp);
+router.get('/:id', getUserById);
+router.post(`/signIn`, SignIn)
 
 export default router;

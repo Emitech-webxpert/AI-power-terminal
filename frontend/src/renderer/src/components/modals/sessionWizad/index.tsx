@@ -11,8 +11,7 @@ import {
   selectSessionWizard
 } from '@renderer/store/slices/sessionwizardSlice'
 import { createSession } from '@renderer/constants/services/sshConnection'
-import { fetchSessions } from '@renderer/store/slices/sessionThunks'
-// Import the proper dispatch type from your store hooks
+import { fetchSessions } from '@renderer/store/slices/sessionList'
 import { useAppDispatch } from '@renderer/store/hooks' // Use this instead of useDispatch
 
 const SessionWizadModal: React.FC<SessionWizadModalProps> = ({ isOpen, onClose }) => {

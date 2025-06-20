@@ -18,7 +18,7 @@ import {
     selectSessionsError,
     clearError
 } from '@renderer/store/slices/sessionList'
-import { fetchSessions } from '@renderer/store/slices/sessionThunks'
+import { fetchSessions } from '@renderer/store/slices/sessionList'
 
 const useSessionManager = (onContextMenuToggle?: (isOpen: boolean) => void) => {
     const dispatch = useAppDispatch()

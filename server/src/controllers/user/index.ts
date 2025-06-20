@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import { UserService } from '@services/index';
-import { ICreateUser } from '@interfaces/user';
+import { ISignUpUser,ILoginUser } from '@interfaces/user';
 
-export const createUserController = async (req: Request, res: Response): Promise<void> => {
+export const SignUp = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userData: ICreateUser = req.body;
+    const userData: ISignUpUser = req.body;
     const user = await UserService.createUser(userData);
 
     res.status(201).json({
@@ -20,7 +20,7 @@ export const createUserController = async (req: Request, res: Response): Promise
   }
 };
 
-export const getUserByIdController = async (req: Request, res: Response): Promise<void> => {
+export const getUserById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const user = await UserService.getUserById(id);
@@ -39,6 +39,44 @@ export const getUserByIdController = async (req: Request, res: Response): Promis
       data: user
     });
   } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+export const SignIn = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, password }: ILoginUser = req.body;
+
+    // Validate required fields
+    if (!email || !password) {
+      res.status(400).json({
+        success: false,
+        message: 'Email and password are required'
+      });
+      return;
+    }
+
+    // Authenticate user through service
+    const result = await UserService.authenticateUser(email, password);
+
+    res.status(200).json({
+      success: true,
+      message: 'User signed in successfully',
+      data: result
+    });
+  } catch (error: any) {
+    // Handle specific authentication errors
+    if (error.message === 'Invalid credentials' || error.message === 'User not found') {
+      res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+      return;
+    }
+
+    // Handle other errors
     res.status(400).json({
       success: false,
       message: error.message

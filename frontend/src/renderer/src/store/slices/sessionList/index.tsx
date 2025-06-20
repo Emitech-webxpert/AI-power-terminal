@@ -1,6 +1,19 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { SessionList } from '@renderer/type/sshSession'
-import { fetchSessions } from '@renderer/store/slices/sessionThunks' // Import the thunk
+import { getAllSessions } from '@renderer/constants/services/sshConnection'
+
+export const fetchSessions = createAsyncThunk(
+  'sessionList/fetchSessions',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getAllSessions()
+      const sessionsData = response.data || []
+      return sessionsData
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch sessions')
+    }
+  }
+)
 
 const initialState: SessionList = {
   isSessionsExpanded: true,
@@ -95,7 +108,7 @@ const sessionListSlice = createSlice({
     },
     resetSessionList: () => initialState
   },
-  // ADD THIS SECTION - This is what was missing!
+  // Handle fetchSessions async thunk
   extraReducers: (builder) => {
     builder
       .addCase(fetchSessions.pending, (state) => {

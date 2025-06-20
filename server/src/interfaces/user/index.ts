@@ -9,7 +9,7 @@ export interface IUser {
   profileUrl?: string;
 }
 
-export interface ICreateUser {
+export interface ISignUpUser {
   name: string;
   email: string;
   password?: string;
@@ -61,4 +61,15 @@ export interface IResetPassword {
   email: string;
   resetOTP: string;
   newPassword: string;
+}
+
+export interface IAuthResult {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    profileUrl?: string;
+    isGoogleLogin: boolean;
+  };
+  token: string;
 }
