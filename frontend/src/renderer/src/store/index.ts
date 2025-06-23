@@ -3,7 +3,8 @@ import themeReducer from './slices/themeSlice'
 import terminalReducer from './slices/terminalSlice'
 import sessionWizardReducer from './slices/sessionwizardSlice'
 import sessionListReducer from './slices/sessionList'
-import AuthReducer from './slices/authSlice'
+import AuthReducer from './slices/authSlice/signIn'
+import signUpReducer from "./slices/authSlice/signUp"
 
 export const store = configureStore({
   reducer: {
@@ -11,7 +12,8 @@ export const store = configureStore({
     terminal: terminalReducer,
     sessionWizard: sessionWizardReducer,
     sessionList: sessionListReducer,
-    auth: AuthReducer
+    auth: AuthReducer,
+    signUp:signUpReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

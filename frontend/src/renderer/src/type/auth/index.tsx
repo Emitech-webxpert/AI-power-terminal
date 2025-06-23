@@ -19,8 +19,10 @@ export interface AuthLayoutProps {
   onLoginSuccess: () => void
 }
 export interface ISignUpRequest {
+  name: string,
   email: string;
   password: string;
+  confirmPassword: string
   isGoogleLogin?: boolean;
   resetOTP?: string | null;
   resetOTPExpiry?: Date | null;
@@ -30,7 +32,7 @@ export interface ISignInRequest {
   email: string;
   password: string;
 }
-export interface AuthState {
+export interface signInState {
   isLoggedIn: boolean
   isLoading: boolean
   isAuthLoading: boolean
@@ -41,6 +43,23 @@ export interface AuthState {
   password: string
   keepLoggedIn: boolean
   showPassword: boolean
+  fieldErrors: {
+    email?: string
+    password?: string
+  }
+  isFormValid: boolean
+}
+export interface SignUpState {
+  name: string
+  email: string
+  password: string
+  confirmPassword: string
+  showPassword: boolean
+  showConfirmPassword: boolean
+  isLoading: boolean
+  fieldErrors: { name?: string; email?: string; password?: string; confirmPassword?: string }
+  isFormValid: boolean
+  error: string | null
 }
 
 export interface SignInFormProps {
@@ -50,14 +69,38 @@ export interface SignInFormProps {
   showPassword: boolean
   isLoading: boolean
   error: string | null
+  fieldErrors: { email?: string; password?: string }
+  isFormValid: boolean
   onEmailChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onKeepLoggedInChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onTogglePassword: () => void
   onSubmit: (e: React.FormEvent) => void
   onForgotPasswordClick: () => void
+  onFieldValidate: (field: string, value: string) => void
 }
+
 export interface SocialSignInProps {
   onSignUpClick: () => void
   disabled?: boolean
+}
+export interface SignUpFormProps {
+  name: string
+  email: string
+  password: string
+  confirmPassword: string
+  showPassword: boolean
+  showConfirmPassword: boolean
+  isLoading: boolean
+  error: string | null
+  fieldErrors?: { name?: string; email?: string; password?: string; confirmPassword?: string }
+  isFormValid: boolean
+  onFieldValidate: (field: string, value: string, additionalValue?: string) => void
+  onNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onEmailChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onConfirmPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onTogglePassword: () => void
+  onToggleConfirmPassword: () => void
+  onSubmit: (e: React.FormEvent) => void
 }

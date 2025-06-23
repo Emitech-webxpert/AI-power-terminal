@@ -1,6 +1,6 @@
 import React from 'react'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
-import {SignInFormProps} from "@renderer/type/auth"
+import {SignInFormProps} from "@renderer/type"
 
 const SignInForm: React.FC<SignInFormProps> = ({
   email,
@@ -9,36 +9,54 @@ const SignInForm: React.FC<SignInFormProps> = ({
   showPassword,
   isLoading,
   error,
+  fieldErrors,
+  isFormValid,
   onEmailChange,
   onPasswordChange,
   onKeepLoggedInChange,
   onTogglePassword,
   onSubmit,
-  onForgotPasswordClick
+  onForgotPasswordClick,
+  onFieldValidate
 }) => {
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    onEmailChange(e)
+    onFieldValidate('email', value)
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    onPasswordChange(e)
+    onFieldValidate('password', value)
+  }
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col">
-      {/* Error Message */}
-      {error && (
-        <div className="mb-3 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
-          {error}
-        </div>
-      )}
+      {/* Global Error Message */}
+   
 
       {/* Email Input */}
       <div className="input-group-custom mb-3">
         <input
           type="email"
           value={email}
-          onChange={onEmailChange}
-          className={`input-field w-full p-3 h-14 rounded-lg terminal-dark-bg text-base text-white border border-muted focus:border-blue focus:outline-none ${email ? 'filled' : ''}`}
+          onChange={handleEmailChange}
+          className={`input-field w-full p-3 h-14 rounded-lg terminal-dark-bg text-base text-white border ${
+            fieldErrors.email 
+              ? 'border-red-500 focus:border-red-500' 
+              : 'border-muted focus:border-blue'
+          } focus:outline-none ${email ? 'filled' : ''}`}
           id="email"
           required
           disabled={isLoading}
         />
-        <label htmlFor="email" className="input-label-custom text-muted">
+        <label htmlFor="email" className={`input-label-custom ${fieldErrors.email ? 'text-red-400' : 'text-muted'}`}>
           Email
         </label>
+        {fieldErrors.email && (
+          <p className="text-red-400 text-xs mt-1">{fieldErrors.email}</p>
+        )}
       </div>
 
       {/* Password Input */}
@@ -46,14 +64,18 @@ const SignInForm: React.FC<SignInFormProps> = ({
         <input
           type={showPassword ? 'text' : 'password'}
           value={password}
-          onChange={onPasswordChange}
-          className={`input-field w-full p-3 h-14 pr-10 rounded-lg terminal-dark-bg text-base text-white border border-muted focus:border-blue focus:outline-none ${password ? 'filled' : ''}`}
+          onChange={handlePasswordChange}
+          className={`input-field w-full p-3 h-14 pr-10 rounded-lg terminal-dark-bg text-base text-white border ${
+            fieldErrors.password 
+              ? 'border-red-500 focus:border-red-500' 
+              : 'border-muted focus:border-blue'
+          } focus:outline-none ${password ? 'filled' : ''}`}
           id="password"
           placeholder="password"
           required
           disabled={isLoading}
         />
-        <label htmlFor="password" className="input-label-custom text-muted">
+        <label htmlFor="password" className={`input-label-custom ${fieldErrors.password ? 'text-red-400' : 'text-muted'}`}>
           Password
         </label>
         <button
@@ -64,6 +86,9 @@ const SignInForm: React.FC<SignInFormProps> = ({
         >
           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
+        {fieldErrors.password && (
+          <p className="text-red-400 text-xs mt-1">{fieldErrors.password}</p>
+        )}
       </div>
 
       {/* Sign In Options */}
@@ -101,6 +126,11 @@ const SignInForm: React.FC<SignInFormProps> = ({
           'Sign in'
         )}
       </button>
+         {error && (
+        <div className="mb-3 p-3 text-sm">
+          {error}
+        </div>
+      )}
     </form>
   )
 }

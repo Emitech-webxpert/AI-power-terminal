@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { SignInProps } from '@renderer/type'
 import { useAppSelector, useAppDispatch } from '@renderer/store/hooks'
 import {
@@ -8,17 +8,23 @@ import {
   setKeepLoggedIn,
   toggleShowPassword,
   clearError,
-  selectIsLoading,
-  selectError,
+  validateField,
+  validateForm,
+  clearForm,
+  clearAllFieldErrors,
   selectEmail,
   selectPassword,
   selectKeepLoggedIn,
-  selectShowPassword
-} from '@renderer/store/slices/authSlice'
+  selectShowPassword,
+  selectIsLoading,
+  selectError,
+  selectFieldErrors,
+  selectIsFormValid
+} from '@renderer/store/slices/authSlice/signIn'
 
 import SignInForm from './signInForm'
-import OrDivider from './orDivider'
-import SocialSignIn from './socialSignIn'
+import OrDivider from '../../common/OrDivider'
+import SocialButtons from '../../common/socialLogin'
 
 const SignIn: React.FC<SignInProps> = ({
   onLoginSuccess,
@@ -27,17 +33,35 @@ const SignIn: React.FC<SignInProps> = ({
 }) => {
   const dispatch = useAppDispatch()
   
-  // Redux state
-  const isLoading = useAppSelector(selectIsLoading)
-  const error = useAppSelector(selectError)
+  // Redux state including validation
   const email = useAppSelector(selectEmail)
   const password = useAppSelector(selectPassword)
   const keepLoggedIn = useAppSelector(selectKeepLoggedIn)
   const showPassword = useAppSelector(selectShowPassword)
+  const isLoading = useAppSelector(selectIsLoading)
+  const error = useAppSelector(selectError)
+  const fieldErrors = useAppSelector(selectFieldErrors)
+  const isFormValid = useAppSelector(selectIsFormValid)
+
+  // Clear form when component mounts (when modal opens or switches)
+  useEffect(() => {
+    dispatch(clearForm())
+    dispatch(clearAllFieldErrors())
+  }, [dispatch])
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('🔥 Submit clicked with:', { email, password })
+    // Clear any previous errors
     dispatch(clearError())
+    
+    // Validate entire form before submission
+    dispatch(validateForm())
+    
+    // Check if form is valid after validation
+    if (!isFormValid) {
+      return
+    }
     
     try {
       const result = await dispatch(signInUser({ email, password }))
@@ -47,6 +71,51 @@ const SignIn: React.FC<SignInProps> = ({
       }
     } catch (err) {
       console.error('Unexpected error:', err)
+    }
+  }
+
+  const handleFieldValidate = (field: string, value: string) => {
+    // Use the validateField action from your slice
+    dispatch(validateField({ field, value }))
+  }
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setEmail(e.target.value))
+    // Clear API error when user starts typing
+    if (error) {
+      dispatch(clearError())
+    }
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setPassword(e.target.value))
+    // Clear API error when user starts typing
+    if (error) {
+      dispatch(clearError())
+    }
+  }
+
+  const handleKeepLoggedInChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setKeepLoggedIn(e.target.checked))
+  }
+
+  const handleTogglePassword = () => {
+    dispatch(toggleShowPassword())
+  }
+
+  const handleSignUpClick = () => {
+    // Clear form before switching to SignUp
+    dispatch(clearForm())
+    dispatch(clearAllFieldErrors())
+    
+    if (onSignUpClick) {
+      onSignUpClick()
+    }
+  }
+
+  const handleForgotPasswordClick = () => {
+    if (onForgotPasswordClick) {
+      onForgotPasswordClick()
     }
   }
 
@@ -65,19 +134,23 @@ const SignIn: React.FC<SignInProps> = ({
           showPassword={showPassword}
           isLoading={isLoading}
           error={error}
-          onEmailChange={(e) => dispatch(setEmail(e.target.value))}
-          onPasswordChange={(e) => dispatch(setPassword(e.target.value))}
-          onKeepLoggedInChange={(e) => dispatch(setKeepLoggedIn(e.target.checked))}
-          onTogglePassword={() => dispatch(toggleShowPassword())}
+          fieldErrors={fieldErrors}
+          isFormValid={isFormValid}
+          onEmailChange={handleEmailChange}
+          onPasswordChange={handlePasswordChange}
+          onKeepLoggedInChange={handleKeepLoggedInChange}
+          onTogglePassword={handleTogglePassword}
           onSubmit={handleSignIn}
-          onForgotPasswordClick={onForgotPasswordClick ?? (() => {})}
+          onForgotPasswordClick={handleForgotPasswordClick}
+          onFieldValidate={handleFieldValidate}
         />
 
         <OrDivider />
         
-        <SocialSignIn 
-          disabled={isLoading} 
-          onSignUpClick={onSignUpClick ?? (() => {})}
+        <SocialButtons 
+          mode="signin"
+          disabled={isLoading}
+          onToggleClick={handleSignUpClick}
         />
       </div>
     </div>

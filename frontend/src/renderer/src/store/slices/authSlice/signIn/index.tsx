@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { signIn } from '@renderer/constants/services/Auth'
-import { ISignInRequest, AuthState } from '@renderer/type/auth'
-
+import { ISignInRequest, signInState } from '@renderer/type/auth'
+import { validate } from '@renderer/utils'
 
 export const signInUser = createAsyncThunk(
     'auth/signInUser',
@@ -15,7 +15,8 @@ export const signInUser = createAsyncThunk(
         }
     }
 )
-const initialState: AuthState = {
+
+const initialState: signInState = {
     isLoggedIn: false,
     isLoading: false,
     isAuthLoading: true,
@@ -25,12 +26,11 @@ const initialState: AuthState = {
     email: '',
     password: '',
     keepLoggedIn: false,
-    showPassword: false
+    showPassword: false,
+    fieldErrors: {},
+    isFormValid: false
 }
 
-
-
-// Async thunk for checking auth status - INSIDE THE SLICE FILE
 export const checkAuthStatus = createAsyncThunk(
     'auth/checkAuthStatus',
     async (_, { rejectWithValue }) => {
@@ -90,6 +90,8 @@ const authSlice = createSlice({
             state.keepLoggedIn = false
             state.showPassword = false
             state.error = null
+            state.fieldErrors = {}
+            state.isFormValid = false
         },
         // Clear error
         clearError: (state) => {
@@ -100,7 +102,57 @@ const authSlice = createSlice({
             state.isAuthLoading = action.payload
         },
         // Reset auth state
-        resetAuth: () => initialState
+        resetAuth: () => initialState,
+
+        // NEW VALIDATION ACTIONS
+        setFieldError: (state, action: PayloadAction<{ field: string; error: string }>) => {
+            state.fieldErrors[action.payload.field] = action.payload.error
+            // Update form validity when field errors change
+            state.isFormValid = validate.isFormValid(state.fieldErrors)
+        },
+        clearFieldError: (state, action: PayloadAction<string>) => {
+            delete state.fieldErrors[action.payload]
+            // Update form validity when field errors change
+            state.isFormValid = validate.isFormValid(state.fieldErrors)
+        },
+        clearAllFieldErrors: (state) => {
+            state.fieldErrors = {}
+            state.isFormValid = false
+        },
+        setFormValid: (state, action: PayloadAction<boolean>) => {
+            state.isFormValid = action.payload
+        },
+        validateForm: (state) => {
+            const errors = validate.signInForm(state.email, state.password)
+            state.fieldErrors = errors
+            state.isFormValid = validate.isFormValid(errors)
+        },
+        validateField: (state, action: PayloadAction<{ field: string; value: string }>) => {
+            const { field, value } = action.payload
+            let validationResult: { isValid: boolean; message: string } = { isValid: true, message: '' }
+
+            if (field === 'email') {
+                validationResult = validate.email(value)
+            } else if (field === 'password') {
+                // Only check if password exists, no complexity validation
+                if (!value.trim()) {
+                    validationResult = { isValid: false, message: 'Password is required' }
+                } else {
+                    validationResult = { isValid: true, message: '' }
+                }
+            }
+
+            if (validationResult) {
+                if (validationResult.isValid) {
+                    delete state.fieldErrors[field]
+                } else {
+                    state.fieldErrors[field] = validationResult.message
+                }
+
+                // Update form validity
+                state.isFormValid = validate.isFormValid(state.fieldErrors)
+            }
+        }
     },
     extraReducers: (builder) => {
         // Sign in user
@@ -125,11 +177,13 @@ const authSlice = createSlice({
                     localStorage.setItem('userData', JSON.stringify(action.payload.user))
                 }
 
-                // Clear form
+                // Clear form and validation
                 state.email = ''
                 state.password = ''
                 state.keepLoggedIn = false
                 state.showPassword = false
+                state.fieldErrors = {}
+                state.isFormValid = false
             })
             .addCase(signInUser.rejected, (state, action) => {
                 state.isLoading = false
@@ -166,20 +220,33 @@ export const {
     clearForm,
     clearError,
     setAuthLoading,
-    resetAuth
+    resetAuth,
+    // NEW VALIDATION ACTIONS
+    setFieldError,
+    clearFieldError,
+    clearAllFieldErrors,
+    setFormValid,
+    validateForm,
+    validateField
 } = authSlice.actions
 
 // Selectors
-export const selectAuth = (state: { auth: AuthState }) => state.auth
-export const selectIsLoggedIn = (state: { auth: AuthState }) => state.auth.isLoggedIn
-export const selectIsLoading = (state: { auth: AuthState }) => state.auth.isLoading
-export const selectIsAuthLoading = (state: { auth: AuthState }) => state.auth.isAuthLoading
-export const selectUser = (state: { auth: AuthState }) => state.auth.user
-export const selectToken = (state: { auth: AuthState }) => state.auth.token
-export const selectError = (state: { auth: AuthState }) => state.auth.error
-export const selectEmail = (state: { auth: AuthState }) => state.auth.email
-export const selectPassword = (state: { auth: AuthState }) => state.auth.password
-export const selectKeepLoggedIn = (state: { auth: AuthState }) => state.auth.keepLoggedIn
-export const selectShowPassword = (state: { auth: AuthState }) => state.auth.showPassword
+export const selectAuth = (state: { auth: signInState }) => state.auth
+export const selectIsLoggedIn = (state: { auth: signInState }) => state.auth.isLoggedIn
+export const selectIsLoading = (state: { auth: signInState }) => state.auth.isLoading
+export const selectIsAuthLoading = (state: { auth: signInState }) => state.auth.isAuthLoading
+export const selectUser = (state: { auth: signInState }) => state.auth.user
+export const selectToken = (state: { auth: signInState }) => state.auth.token
+export const selectError = (state: { auth: signInState }) => state.auth.error
+export const selectEmail = (state: { auth: signInState }) => state.auth.email
+export const selectPassword = (state: { auth: signInState }) => state.auth.password
+export const selectKeepLoggedIn = (state: { auth: signInState }) => state.auth.keepLoggedIn
+export const selectShowPassword = (state: { auth: signInState }) => state.auth.showPassword
+
+// NEW VALIDATION SELECTORS
+export const selectFieldErrors = (state: { auth: signInState }) => state.auth.fieldErrors
+export const selectIsFormValid = (state: { auth: signInState }) => state.auth.isFormValid
+export const selectEmailError = (state: { auth: signInState }) => state.auth.fieldErrors.email
+export const selectPasswordError = (state: { auth: signInState }) => state.auth.fieldErrors.password
 
 export default authSlice.reducer
