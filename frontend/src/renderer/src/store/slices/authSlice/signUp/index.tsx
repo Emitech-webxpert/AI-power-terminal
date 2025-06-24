@@ -25,8 +25,9 @@ const initialState: SignUpState = {
     showConfirmPassword: false,
     isLoading: false,
     error: null,
+    socialAuthError: null, // Add this field
     fieldErrors: {},
-    isFormValid: false
+    isFormValid: false,
 }
 
 export const checkAuthStatus = createAsyncThunk(
@@ -93,11 +94,23 @@ const signUpSlice = createSlice({
             state.showPassword = false
             state.showConfirmPassword = false
             state.error = null
+            state.socialAuthError = null // Clear social auth error too
             state.fieldErrors = {}
             state.isFormValid = false
         },
         clearSignUpError: (state) => {
             state.error = null
+        },
+        // Add social auth error actions
+        setSocialAuthError: (state, action: PayloadAction<string>) => {
+            state.socialAuthError = action.payload
+        },
+        clearSocialAuthError: (state) => {
+            state.socialAuthError = null
+        },
+        clearAllErrors: (state) => {
+            state.error = null
+            state.socialAuthError = null
         },
         
         // NEW VALIDATION ACTIONS
@@ -151,10 +164,12 @@ const signUpSlice = createSlice({
             .addCase(signUpUser.pending, (state) => {
                 state.isLoading = true
                 state.error = null
+                state.socialAuthError = null // Clear social auth error on new request
             })
             .addCase(signUpUser.fulfilled, (state, action) => {
                 state.isLoading = false
                 state.error = null
+                state.socialAuthError = null
                 // Clear form and validation on success
                 state.name = ''
                 state.email = ''
@@ -181,6 +196,10 @@ export const {
     toggleSignUpShowConfirmPassword,
     clearSignUpForm,
     clearSignUpError,
+    // Add new social auth actions
+    setSocialAuthError,
+    clearSocialAuthError,
+    clearAllErrors,
     // NEW VALIDATION ACTIONS
     setSignUpFieldError,
     clearSignUpFieldError,
@@ -200,6 +219,7 @@ export const selectSignUpShowPassword = (state: { signUp: SignUpState }) => stat
 export const selectSignUpShowConfirmPassword = (state: { signUp: SignUpState }) => state.signUp.showConfirmPassword
 export const selectSignUpIsLoading = (state: { signUp: SignUpState }) => state.signUp.isLoading
 export const selectSignUpError = (state: { signUp: SignUpState }) => state.signUp.error
+export const selectSocialAuthError = (state: { signUp: SignUpState }) => state.signUp.socialAuthError // Add this selector
 
 // NEW VALIDATION SELECTORS
 export const selectSignUpFieldErrors = (state: { signUp: SignUpState }) => state.signUp.fieldErrors

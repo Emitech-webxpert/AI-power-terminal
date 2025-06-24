@@ -9,5 +9,8 @@
     "DB_NAME": "marcin",
     "DB_USER": "root",
     "DB_PASSWORD": "Admin@1234",
-    "JWT_SECRET": "JWT_SECRET"
+    "JWT_SECRET": "JWT_SECRET",
+    "GOOGLE_CLIENT_ID": "598818981031-bsh9rhfp1frj5alsr1j10kjl9onvj83n.apps.googleusercontent.com",
+    "GOOGLE_CLIENT_SECRET": "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",
+    "REDIRECT_URI": "http://localhost:3000/auth/callback"
 }

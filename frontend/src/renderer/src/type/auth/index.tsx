@@ -43,6 +43,7 @@ export interface signInState {
   password: string
   keepLoggedIn: boolean
   showPassword: boolean
+  socialAuthError: string | null
   fieldErrors: {
     email?: string
     password?: string
@@ -60,6 +61,7 @@ export interface SignUpState {
   fieldErrors: { name?: string; email?: string; password?: string; confirmPassword?: string }
   isFormValid: boolean
   error: string | null
+  socialAuthError: string | null
 }
 
 export interface SignInFormProps {

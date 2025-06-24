@@ -23,6 +23,7 @@ const initialState: signInState = {
     user: null,
     token: null,
     error: null,
+    socialAuthError: null, // Add this field
     email: '',
     password: '',
     keepLoggedIn: false,
@@ -90,12 +91,24 @@ const authSlice = createSlice({
             state.keepLoggedIn = false
             state.showPassword = false
             state.error = null
+            state.socialAuthError = null // Clear social auth error too
             state.fieldErrors = {}
             state.isFormValid = false
         },
         // Clear error
         clearError: (state) => {
             state.error = null
+        },
+        // Add social auth error actions
+        setSocialAuthError: (state, action: PayloadAction<string>) => {
+            state.socialAuthError = action.payload
+        },
+        clearSocialAuthError: (state) => {
+            state.socialAuthError = null
+        },
+        clearAllErrors: (state) => {
+            state.error = null
+            state.socialAuthError = null
         },
         // Set auth loading
         setAuthLoading: (state, action: PayloadAction<boolean>) => {
@@ -160,6 +173,7 @@ const authSlice = createSlice({
             .addCase(signInUser.pending, (state) => {
                 state.isLoading = true
                 state.error = null
+                state.socialAuthError = null // Clear social auth error on new request
             })
             .addCase(signInUser.fulfilled, (state, action) => {
                 state.isLoading = false
@@ -167,6 +181,7 @@ const authSlice = createSlice({
                 state.user = action.payload.user || null
                 state.token = action.payload.token || null
                 state.error = null
+                state.socialAuthError = null
 
                 // Store in localStorage
                 localStorage.setItem('isLoggedIn', 'true')
@@ -219,6 +234,9 @@ export const {
     toggleShowPassword,
     clearForm,
     clearError,
+    setSocialAuthError,
+    clearSocialAuthError,
+    clearAllErrors,
     setAuthLoading,
     resetAuth,
     // NEW VALIDATION ACTIONS
@@ -238,6 +256,7 @@ export const selectIsAuthLoading = (state: { auth: signInState }) => state.auth.
 export const selectUser = (state: { auth: signInState }) => state.auth.user
 export const selectToken = (state: { auth: signInState }) => state.auth.token
 export const selectError = (state: { auth: signInState }) => state.auth.error
+export const selectSocialAuthError = (state: { auth: signInState }) => state.auth.socialAuthError // Add this selector
 export const selectEmail = (state: { auth: signInState }) => state.auth.email
 export const selectPassword = (state: { auth: signInState }) => state.auth.password
 export const selectKeepLoggedIn = (state: { auth: signInState }) => state.auth.keepLoggedIn

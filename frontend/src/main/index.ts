@@ -1,8 +1,9 @@
+// src/main/index.ts
 import { app, BrowserWindow } from 'electron'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
-import { createWindow ,createApplicationMenu} from '@main/window'
-import { TerminalIpc } from '@main/ipc'
-import  {setupAutoUpdater } from '@main/autoUpdater'
+import { createWindow, createApplicationMenu } from '@main/window'
+import { TerminalIpc,GoogleAuthIpc } from '@main/ipc'
+import { setupAutoUpdater } from '@main/autoUpdater'
 import { setupAllBackgroundServices } from '@main/spawn'
 
 app.whenReady().then(() => {
@@ -15,6 +16,7 @@ app.whenReady().then(() => {
   createApplicationMenu()
   createWindow()
   TerminalIpc()
+  GoogleAuthIpc() // Add this line
   setupAutoUpdater()
   setupAllBackgroundServices()
 

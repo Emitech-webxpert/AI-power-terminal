@@ -5,6 +5,8 @@ import sessionWizardReducer from './slices/sessionwizardSlice'
 import sessionListReducer from './slices/sessionList'
 import AuthReducer from './slices/authSlice/signIn'
 import signUpReducer from "./slices/authSlice/signUp"
+import socialLoginReducer from './slices/authSlice/socialLogin'
+
 
 export const store = configureStore({
   reducer: {
@@ -13,7 +15,8 @@ export const store = configureStore({
     sessionWizard: sessionWizardReducer,
     sessionList: sessionListReducer,
     auth: AuthReducer,
-    signUp:signUpReducer
+    signUp: signUpReducer,
+    socialLogin: socialLoginReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
