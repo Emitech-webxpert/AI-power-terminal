@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { sessionlight, sessionss, work, worklight } from '@renderer/assets'
 import { SessionManager, WorkflowManager } from '@renderer/components/sideBar/index'
 import { useAppSelector } from '@renderer/store/hooks'
-import { selectIsDark } from '@renderer/store/slices/themeSlice'
+import { selectIsDark } from '@renderer/store/slices/theme'
 import { SidebarProps } from '@renderer/type'
 
 

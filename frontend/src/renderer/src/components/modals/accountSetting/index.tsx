@@ -3,12 +3,14 @@ import { X } from 'lucide-react'
 import { AccountSettingsModalProps } from '@renderer/type'
 
 const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
+  userName,
+  userEmail,
   isOpen,
   onClose,
   onOpenResetPassword
 }) => {
   if (!isOpen) return null
-
+  console.log(userName, "SDfdsf")
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50 bg-modal">
@@ -17,7 +19,7 @@ const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
             onClick={onClose}
             className="absolute top-3 right-2 text-white bg-transparent cursor-pointer border-0"
           >
-           <X size={16} color='#B5B5B5' />
+            <X size={16} color='#B5B5B5' />
           </button>
 
           <h2 className="text-xs font-medium mb-0 mt-0  border-b border-gray-light pb-5">
@@ -26,13 +28,14 @@ const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
 
           <div className="flex justify-center mb-4">
             <div className="navbar-avatar-color w-14 h-14 my-4 bg-primary text-white font-semibold text-lg flex justify-center items-center rounded-full bg-red-600 mr-3">
-              SH
+              {userName.slice(0,2)}
             </div>
           </div>
 
           <div className="border-box">
             <input
               type="text"
+              defaultValue={userName}
               className="w-full p-2 h-11 rounded bg-transparent border border-gray-light text-white mb-2"
               placeholder="Samuel Harris"
             />
@@ -41,6 +44,7 @@ const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
           <div className="border-box">
             <input
               type="email"
+              defaultValue={userEmail}
               className="w-full p-2 h-11 rounded bg-dark border border-gray-light text-white mb-2"
               placeholder="samuelharris@gmail.com"
             />

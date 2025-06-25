@@ -10,7 +10,7 @@ import {
   WorkFlowContextModal
 } from '@renderer/components/modals'
 import { useAppSelector } from '@renderer/store/hooks'
-import { selectIsDark } from '@renderer/store/slices/themeSlice'
+import { selectIsDark } from '@renderer/store/slices/theme'
 
 const WorkflowManager: React.FC<WorkflowManagerProps> = ({ toggleWorkflowVisibility, sidebarOnRight }) => {
   const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(true)

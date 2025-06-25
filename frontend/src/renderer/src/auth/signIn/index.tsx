@@ -24,8 +24,8 @@ import {
   selectSocialAuthError,
   selectFieldErrors,
   selectIsFormValid
-} from '@renderer/store/slices/authSlice/signIn'
-import { signUpUser } from '@renderer/store/slices/authSlice/signUp'
+} from '@renderer/store/slices/auth/signIn'
+import { signUpUser } from '@renderer/store/slices/auth/signUp'
 import {GoogleAuthData} from '@shared/type'
 import SignInForm from './signInForm'
 import OrDivider from '../../common/OrDivider'

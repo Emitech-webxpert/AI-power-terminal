@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { MonitorUp } from 'lucide-react'
 import '@renderer/assets/css/topbar.css'
 import { NavBarProps } from '@renderer/type'
@@ -11,71 +12,112 @@ import {
   ShareScreenModal
 } from '@modals/index'
 import { NavbarLeft, UserDropdown } from '@renderer/components/navbarMain'
-const NavBar: React.FC<NavBarProps> = ({ isDarkMode = true, onThemeToggle, userName = 'User' }) => {
-  const [isAccountSettingsOpen, setIsAccountSettingsOpen] = useState(false)
-  const [isQuickConnectOpen, setIsQuickConnectOpen] = useState(false)
-  const [isShareScreenOpen, setIsShareScreenOpen] = useState(false)
-  const [isShareCopyOpen, setIsShareCopyOpen] = useState(false)
-  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false)
-  const [isUpdatePassword, setIsUpdatePassword] = useState(false)
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false) 
-  const userEmail = 'abc@yopmail.com'
+import {
+  openAccountSettings,
+  closeAccountSettings,
+  openQuickConnect,
+  closeQuickConnect,
+  openShareScreen,
+  closeShareScreen,
+  openShareCopy,
+  closeShareCopy,
+  openResetPassword,
+  closeResetPassword,
+  openUpdatePassword,
+  closeUpdatePassword,
+  setDropdownOpen,
+  selectIsAccountSettingsOpen,
+  selectIsQuickConnectOpen,
+  selectIsShareScreenOpen,
+  selectIsShareCopyOpen,
+  selectIsResetPasswordOpen,
+  selectIsUpdatePassword,
+  selectIsDropdownOpen
+} from '@renderer/store/slices/navbarSlice'
+import type { RootState, AppDispatch } from '@renderer/store'
+
+const NavBar: React.FC<NavBarProps> = ({ isDarkMode = true, onThemeToggle }) => {
+  const dispatch = useDispatch<AppDispatch>()
+
+  // Redux selectors
+  const isAccountSettingsOpen = useSelector((state: RootState) => selectIsAccountSettingsOpen(state))
+  const isQuickConnectOpen = useSelector((state: RootState) => selectIsQuickConnectOpen(state))
+  const isShareScreenOpen = useSelector((state: RootState) => selectIsShareScreenOpen(state))
+  const isShareCopyOpen = useSelector((state: RootState) => selectIsShareCopyOpen(state))
+  const isResetPasswordOpen = useSelector((state: RootState) => selectIsResetPasswordOpen(state))
+  const isUpdatePassword = useSelector((state: RootState) => selectIsUpdatePassword(state))
+  const isDropdownOpen = useSelector((state: RootState) => selectIsDropdownOpen(state))
+
+  // Get user data from localStorage directly
+  const getUserDataFromStorage = () => {
+    try {
+      const storedUserData = localStorage.getItem('userData')
+      return storedUserData ? JSON.parse(storedUserData) : null
+    } catch (error) {
+      console.error('Error parsing userData from localStorage:', error)
+      return null
+    }
+  }
+
+  const userData = getUserDataFromStorage()
+  const UserName = userData?.name
+  const userEmail = userData?.email
 
   useEffect(() => {
     document.body.className = isDarkMode ? 'dark' : 'light'
   }, [isDarkMode])
 
+  // Action handlers using Redux dispatch
   const handleAccountSettingsClick = () => {
-    setIsAccountSettingsOpen(true)
-    setIsDropdownOpen(false)
+    dispatch(openAccountSettings())
   }
 
   const handleAccountSettingsClose = () => {
-    setIsAccountSettingsOpen(false)
+    dispatch(closeAccountSettings())
   }
 
   const handleQuickConnectClick = () => {
-    setIsQuickConnectOpen(true)
+    dispatch(openQuickConnect())
   }
 
   const handleQuickConnectClose = () => {
-    setIsQuickConnectOpen(false)
+    dispatch(closeQuickConnect())
   }
 
   const handleShareScreenClick = () => {
-    setIsShareScreenOpen(true)
+    dispatch(openShareScreen())
   }
 
   const handleShareScreenClose = () => {
-    setIsShareScreenOpen(false)
+    dispatch(closeShareScreen())
   }
 
   const handleShareCopyClick = () => {
-    setIsShareCopyOpen(true)
-    setIsShareScreenOpen(false)
+    dispatch(openShareCopy())
   }
 
   const handleShareCopyClose = () => {
-    setIsShareCopyOpen(false)
+    dispatch(closeShareCopy())
   }
 
   const handleOpenResetPassword = () => {
-    setIsResetPasswordOpen(true)
-    setIsAccountSettingsOpen(false)
+    dispatch(openResetPassword())
   }
 
   const handleResetPasswordClose = () => {
-    setIsResetPasswordOpen(false)
+    dispatch(closeResetPassword())
   }
 
   const handleOpenUpdatePassword = () => {
-    setIsUpdatePassword(true)
-    setIsAccountSettingsOpen(false)
-    setIsResetPasswordOpen(false)
+    dispatch(openUpdatePassword())
   }
 
   const handleUpdatePasswordClose = () => {
-    setIsUpdatePassword(false)
+    dispatch(closeUpdatePassword())
+  }
+
+  const handleSetDropdownOpen = (isOpen: boolean) => {
+    dispatch(setDropdownOpen(isOpen))
   }
 
   return (
@@ -108,26 +150,27 @@ const NavBar: React.FC<NavBarProps> = ({ isDarkMode = true, onThemeToggle, userN
           <button
             className="navbar-share-button rounded-md px-1.5 py-1 flex items-center gap-1 text-white"
             title="Share"
-           
             onClick={handleShareScreenClick}
           >
             <span className="text-xs font-medium text-white">Share</span>
             <button title="share screen" className="bg-transparent border-0 cursor-pointer">
-              <MonitorUp className="text-white" size={14} />{' '}
+              <MonitorUp className="text-white" size={14} />
             </button>
           </button>
         </div>
 
         <UserDropdown
-          userName={userName}
+          userName={UserName}
           userEmail={userEmail}
           onAccountSettingsClick={handleAccountSettingsClick}
           isDropdownOpen={isDropdownOpen}
-          setIsDropdownOpen={setIsDropdownOpen}
+          setIsDropdownOpen={handleSetDropdownOpen}
         />
       </div>
 
       <AccountSettingsModal
+        userName={UserName}
+        userEmail={userEmail}
         isOpen={isAccountSettingsOpen}
         onClose={handleAccountSettingsClose}
         onOpenResetPassword={handleOpenResetPassword}

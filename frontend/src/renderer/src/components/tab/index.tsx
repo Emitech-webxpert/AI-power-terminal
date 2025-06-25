@@ -10,7 +10,7 @@ import {
   updateTerminalTitle,
   selectTerminals,
   selectActiveTerminalId
-} from '@renderer/store/slices/terminalSlice'
+} from '@renderer/store/slices/terminal'
 import {
   CloseModal,
   DisconnectModal,

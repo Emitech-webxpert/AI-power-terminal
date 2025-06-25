@@ -18,6 +18,6 @@ export { default as CloseModal } from "./close";
 export { default as DisconnectModal } from "./disconnect";
 export { default as SSHPasswordModal } from "./sshPassword"
 export { default as HostKeyModal } from "./hostAuthentication"
-
+export { default as LogoutModal } from "./logOut"
 
 

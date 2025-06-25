@@ -1,12 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit'
-import themeReducer from './slices/themeSlice'
-import terminalReducer from './slices/terminalSlice'
-import sessionWizardReducer from './slices/sessionwizardSlice'
+import themeReducer from './slices/theme'
+import terminalReducer from './slices/terminal'
+import sessionWizardReducer from './slices/sessionwizard'
 import sessionListReducer from './slices/sessionList'
-import AuthReducer from './slices/authSlice/signIn'
-import signUpReducer from "./slices/authSlice/signUp"
-import socialLoginReducer from './slices/authSlice/socialLogin'
-
+import AuthReducer from './slices/auth/signIn'
+import signUpReducer from "./slices/auth/signUp"
+import socialLoginReducer from './slices/auth/socialLogin'
+import navbarReducer from './slices/navbarSlice'
 
 export const store = configureStore({
   reducer: {
@@ -17,6 +17,7 @@ export const store = configureStore({
     auth: AuthReducer,
     signUp: signUpReducer,
     socialLogin: socialLoginReducer,
+    navBar: navbarReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

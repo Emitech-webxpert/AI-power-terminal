@@ -3,7 +3,7 @@ import NavBar from '@components/navBar'
 import Terminal from '@renderer/Terminal'
 import Sidebar from '@components/sideBar/sideBarMain'
 import { useAppSelector, useAppDispatch } from '@renderer/store/hooks'
-import { selectIsDark, toggleTheme } from '@renderer/store/slices/themeSlice'
+import { selectIsDark, toggleTheme } from '@renderer/store/slices/theme'
 import AuthLayout from '@components/authLayout'
 
 const useSeparateDrag = () => {

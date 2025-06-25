@@ -9,7 +9,7 @@ import {
   updateField,
   resetSessionWizard,
   selectSessionWizard
-} from '@renderer/store/slices/sessionwizardSlice'
+} from '@renderer/store/slices/sessionwizard'
 import { createSession } from '@renderer/constants/services/sshConnection'
 import { fetchSessions } from '@renderer/store/slices/sessionList'
 import { useAppDispatch } from '@renderer/store/hooks' // Use this instead of useDispatch

@@ -8,7 +8,7 @@ import {
   setTeamsLoading,
   selectIsGoogleLoading,
   selectIsTeamsLoading
-} from '@renderer/store/slices/authSlice/socialLogin'
+} from '@renderer/store/slices/auth/socialLogin'
 
 const SocialLogin: React.FC<SocialLoginProps> = ({
   mode,
