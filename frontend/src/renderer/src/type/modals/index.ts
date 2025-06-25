@@ -58,6 +58,13 @@ export interface SessionContextModalProps {
   onOpenSessionWizad?: () => void     
   onRenameOpen?: () => void
 }
+export interface SessionContextFileModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onDeleteOpen?: () => void
+  onDuplicate?: () => void
+  onRenameOpen?: () => void
+}
 
   
   export interface WorkFlowContextModalProps {

@@ -10,7 +10,7 @@ import {
   TabIcon,
   WindowIcon
 } from '@renderer/assets/icons/svg'
-import { SessionContextFileModalProps } from '@renderer/type'
+import {SessionContextFileModalProps} from '@renderer/type'
 
 const SessionContextFileModal: React.FC<SessionContextFileModalProps> = ({
   isOpen,
@@ -47,7 +47,7 @@ const SessionContextFileModal: React.FC<SessionContextFileModalProps> = ({
 
   const handleDuplicateClick = () => {
     if (onDuplicate) {
-      onDuplicate() // This will call the parent's handleDeleteOpen
+      onDuplicate() // This will call the parent's handleDuplicateOpen
     }
   }
 

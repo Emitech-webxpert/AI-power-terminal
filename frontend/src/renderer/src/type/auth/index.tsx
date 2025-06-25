@@ -72,7 +72,6 @@ export interface SignInFormProps {
   isLoading: boolean
   error: string | null
   fieldErrors: { email?: string; password?: string }
-  isFormValid: boolean
   onEmailChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onKeepLoggedInChange: (e: React.ChangeEvent<HTMLInputElement>) => void

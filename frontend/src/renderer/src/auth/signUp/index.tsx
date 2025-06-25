@@ -37,7 +37,7 @@ import SocialButtons from '../../common/socialLogin'
 const SignUp: React.FC<SignInProps> = ({ onLoginSuccess, onSignInClick }) => {
   const dispatch = useAppDispatch()
 
-  // Redux state including validation
+  // Redux state
   const name = useAppSelector(selectSignUpName)
   const email = useAppSelector(selectSignUpEmail)
   const password = useAppSelector(selectSignUpPassword)
@@ -46,35 +46,34 @@ const SignUp: React.FC<SignInProps> = ({ onLoginSuccess, onSignInClick }) => {
   const showConfirmPassword = useAppSelector(selectSignUpShowConfirmPassword)
   const isLoading = useAppSelector(selectSignUpIsLoading)
   const error = useAppSelector(selectSignUpError)
-  const socialAuthError = useAppSelector(selectSocialAuthError) // Get from Redux
+  const socialAuthError = useAppSelector(selectSocialAuthError)
   const fieldErrors = useAppSelector(selectSignUpFieldErrors)
   const isFormValid = useAppSelector(selectSignUpIsFormValid)
 
   useEffect(() => {
     dispatch(clearSignUpForm())
     dispatch(clearAllSignUpFieldErrors())
-    dispatch(clearAllErrors()) // Clear both errors
+    dispatch(clearAllErrors())
   }, [dispatch])
+
+  // Helper function to clear errors when user types (reduces repetition)
+  const clearErrorsOnChange = () => {
+    if (error) dispatch(clearSignUpError())
+    if (socialAuthError) dispatch(clearSocialAuthError())
+  }
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Clear any previous errors
     dispatch(clearAllErrors())
-
-    // Validate entire form before submission
     dispatch(validateSignUpForm())
 
-    // Check if form is valid after validation
-    if (!isFormValid) {
-      return
-    }
+    if (!isFormValid) return
 
     try {
       const result = await dispatch(signUpUser({ name, email, password, confirmPassword }))
 
       if (signUpUser.fulfilled.match(result)) {
-        console.log('Sign up successful:', result.payload)
         localStorage.setItem('isLoggedIn', 'true')
         localStorage.setItem('userData', JSON.stringify(result.payload.data))
         onLoginSuccess()
@@ -84,7 +83,6 @@ const SignUp: React.FC<SignInProps> = ({ onLoginSuccess, onSignInClick }) => {
     }
   }
 
-  // Handle Google Auth Success
   const handleGoogleSuccess = async (googleData: any) => {
     console.log('Google authentication successful:', googleData)
     dispatch(clearSocialAuthError())
@@ -100,83 +98,52 @@ const SignUp: React.FC<SignInProps> = ({ onLoginSuccess, onSignInClick }) => {
       }))
 
       if (signUpUser.fulfilled.match(result)) {
-        console.log('Google user successfully stored in backend:', result.payload)
-
-        // Store authentication data
         localStorage.setItem('isLoggedIn', 'true')
         localStorage.setItem('authToken', googleData.access_token)
         localStorage.setItem('userData', JSON.stringify(googleData.userInfo))
 
-        // Call success callback to close modal and proceed
         onLoginSuccess()
       } else {
-        // Handle backend error
         dispatch(setSocialAuthError(result.payload as string || 'Failed to store user data'))
       }
-
     } catch (error) {
       console.error('Error processing Google auth:', error)
       dispatch(setSocialAuthError('Failed to process Google authentication'))
     }
   }
 
-  // Handle Google Auth Error
   const handleGoogleError = (errorMessage: string) => {
     console.error('Google authentication error:', errorMessage)
     dispatch(setSocialAuthError(errorMessage))
-    dispatch(clearSignUpError()) // Clear any existing form errors
+    dispatch(clearSignUpError())
   }
 
   const handleFieldValidate = (field: string, value: string, additionalValue?: string) => {
     dispatch(validateSignUpField({ field, value, additionalValue }))
   }
 
+  // Simplified change handlers using helper function
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSignUpName(e.target.value))
-    // Clear API error when user starts typing
-    if (error) {
-      dispatch(clearSignUpError())
-    }
-    if (socialAuthError) {
-      dispatch(clearSocialAuthError())
-    }
+    clearErrorsOnChange()
   }
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSignUpEmail(e.target.value))
-    // Clear API error when user starts typing
-    if (error) {
-      dispatch(clearSignUpError())
-    }
-    if (socialAuthError) {
-      dispatch(clearSocialAuthError())
-    }
+    clearErrorsOnChange()
   }
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSignUpPassword(e.target.value))
-    // Clear API error when user starts typing
-    if (error) {
-      dispatch(clearSignUpError())
-    }
-    if (socialAuthError) {
-      dispatch(clearSocialAuthError())
-    }
+    clearErrorsOnChange()
   }
 
   const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSignUpConfirmPassword(e.target.value))
-    // Clear API error when user starts typing
-    if (error) {
-      dispatch(clearSignUpError())
-    }
-    if (socialAuthError) {
-      dispatch(clearSocialAuthError())
-    }
+    clearErrorsOnChange()
   }
 
   const handleSignInClick = () => {
-    // Clear form before switching to SignIn
     dispatch(clearSignUpForm())
     dispatch(clearAllSignUpFieldErrors())
     dispatch(clearAllErrors())
@@ -195,13 +162,6 @@ const SignUp: React.FC<SignInProps> = ({ onLoginSuccess, onSignInClick }) => {
         <h2 className="text-4xl font-bold mb-0 mt-0 text-muted-two pb-1-half">Sign Up</h2>
         <p className="text-sm text-muted-two mb-4 mt-1">Create your account</p>
 
-        {/* Display combined error message */}
-        {displayError && (
-          <div className="mb-3 p-3 text-sm bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
-            {displayError}
-          </div>
-        )}
-
         <SignUpForm
           name={name}
           email={email}
@@ -210,7 +170,7 @@ const SignUp: React.FC<SignInProps> = ({ onLoginSuccess, onSignInClick }) => {
           showPassword={showPassword}
           showConfirmPassword={showConfirmPassword}
           isLoading={isLoading}
-          error={null} // We're handling error display above
+          error={displayError} // Pass the combined error here
           fieldErrors={fieldErrors}
           isFormValid={isFormValid}
           onNameChange={handleNameChange}

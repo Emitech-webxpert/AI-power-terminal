@@ -5,7 +5,6 @@ import { useXtermInstance, useShellOutput } from '@renderer/hooks'
 import type { TerminalComponentProps } from '@renderer/type/terminal'
 
 const TerminalInstance: React.FC<TerminalComponentProps> = ({
-  terminalId,
   terminalType,
   sshParams,
   onClose,

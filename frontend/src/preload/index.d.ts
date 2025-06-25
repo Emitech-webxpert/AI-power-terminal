@@ -1,9 +1,34 @@
+// src/preload/window.d.ts - Update your existing file
 import { ElectronAPI } from '@electron-toolkit/preload'
+import { CreateTerminalOptions } from '@shared/type'
 
 declare global {
   interface Window {
     electron: ElectronAPI
     api: {
+      terminal: {
+        // Terminal lifecycle
+        createTerminal: (options?: CreateTerminalOptions) => Promise<{ success: boolean; terminalId?: string; error?: string }>
+        closeTerminal: (terminalId: string) => Promise<{ success: boolean; error?: string }>
+        
+        // Terminal input/output
+        writeToTerminal: (terminalId: string, data: string) => Promise<{ success: boolean; error?: string }>
+        
+        // Terminal sizing
+        resizeTerminal: (terminalId: string, cols: number, rows: number) => Promise<{ success: boolean; error?: string }>
+        
+        // Event listeners
+        onTerminalData: (callback: (terminalId: string, data: string) => void) => (() => void)
+        onTerminalExit: (callback: (terminalId: string, exitCode: number) => void) => (() => void)
+        
+        // SSH-specific methods
+        submitSSHPassword: (terminalId: string, password: string) => Promise<{ success: boolean; error?: string }>
+        acceptSSHHostKey: (terminalId: string) => Promise<{ success: boolean; error?: string }>
+        
+        // SSH event listeners
+        onSSHPasswordRequired: (callback: (terminalId: string, data: { hostname: string; username: string }) => void) => (() => void)
+        onSSHHostVerificationRequired: (callback: (terminalId: string, data: { hostname: string; hostKey: string }) => void) => (() => void)
+      }
       googleAuth: {
         authenticate: () => Promise<{
           success: boolean
@@ -27,13 +52,13 @@ declare global {
     }
     // Terminal functions exposed by TerminalTabs component
     createLocalShell?: () => void
-    createSSHTerminal?: (sshParams: {
+    createRemoteTerminal?: (connectionParams: {
+      protocol: 'SSH2' | 'Telnet'
       host: string
-      username: string
+      username?: string
       port: number
-      protocol?: string
     }) => void
   }
 }
 
-export { }
+export {}

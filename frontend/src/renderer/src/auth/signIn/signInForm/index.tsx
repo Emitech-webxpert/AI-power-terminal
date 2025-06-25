@@ -10,7 +10,6 @@ const SignInForm: React.FC<SignInFormProps> = ({
   isLoading,
   error,
   fieldErrors,
-  isFormValid,
   onEmailChange,
   onPasswordChange,
   onKeepLoggedInChange,

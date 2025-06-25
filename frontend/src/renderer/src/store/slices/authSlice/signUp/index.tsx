@@ -166,7 +166,7 @@ const signUpSlice = createSlice({
                 state.error = null
                 state.socialAuthError = null // Clear social auth error on new request
             })
-            .addCase(signUpUser.fulfilled, (state, action) => {
+            .addCase(signUpUser.fulfilled, (state) => {
                 state.isLoading = false
                 state.error = null
                 state.socialAuthError = null

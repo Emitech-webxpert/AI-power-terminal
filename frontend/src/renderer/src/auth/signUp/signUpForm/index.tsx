@@ -22,6 +22,23 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
     onSubmit,
     onFieldValidate
 }) => {
+    // Helper function to get input classes (reduces repetition)
+    const getInputClasses = (hasError: boolean, hasValue: boolean, hasRightPadding = false) => {
+        const baseClasses = "input-field w-full p-3 h-14 rounded-lg terminal-dark-bg text-base text-white border focus:outline-none"
+        const borderClasses = hasError
+            ? 'border-red-500 focus:border-red-500'
+            : 'border-muted focus:border-blue'
+        const filledClass = hasValue ? 'filled' : ''
+        const paddingClass = hasRightPadding ? 'pr-10' : ''
+
+        return `${baseClasses} ${borderClasses} ${filledClass} ${paddingClass}`.trim()
+    }
+
+    // Helper function to get label classes
+    const getLabelClasses = (hasError: boolean) => {
+        return `input-label-custom ${hasError ? 'text-red-400' : 'text-muted'}`
+    }
+
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value
         onNameChange(e)
@@ -52,28 +69,18 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
 
     return (
         <form onSubmit={onSubmit} className="flex flex-col">
-            {/* API Error Message */}
-            {error && (
-                <div className="mb-3 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
-                    {error}
-                </div>
-            )}
-
             {/* Name Input */}
             <div className="input-group-custom mb-3">
                 <input
                     type="text"
                     value={name}
                     onChange={handleNameChange}
-                    className={`input-field w-full p-3 h-14 rounded-lg terminal-dark-bg text-base text-white border ${fieldErrors?.name
-                            ? 'border-red-500 focus:border-red-500'
-                            : 'border-muted focus:border-blue'
-                        } focus:outline-none ${name ? 'filled' : ''}`}
+                    className={getInputClasses(!!fieldErrors?.name, !!name)}
                     id="name"
                     required
                     disabled={isLoading}
                 />
-                <label htmlFor="name" className={`input-label-custom ${fieldErrors?.name ? 'text-red-400' : 'text-muted'}`}>
+                <label htmlFor="name" className={getLabelClasses(!!fieldErrors?.name)}>
                     Name
                 </label>
                 {fieldErrors?.name && (
@@ -87,15 +94,12 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
                     type="email"
                     value={email}
                     onChange={handleEmailChange}
-                    className={`input-field w-full p-3 h-14 rounded-lg terminal-dark-bg text-base text-white border ${fieldErrors?.email
-                            ? 'border-red-500 focus:border-red-500'
-                            : 'border-muted focus:border-blue'
-                        } focus:outline-none ${email ? 'filled' : ''}`}
+                    className={getInputClasses(!!fieldErrors?.email, !!email)}
                     id="email"
                     required
                     disabled={isLoading}
                 />
-                <label htmlFor="email" className={`input-label-custom ${fieldErrors?.email ? 'text-red-400' : 'text-muted'}`}>
+                <label htmlFor="email" className={getLabelClasses(!!fieldErrors?.email)}>
                     Email
                 </label>
                 {fieldErrors?.email && (
@@ -109,16 +113,13 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={handlePasswordChange}
-                    className={`input-field w-full p-3 h-14 pr-10 rounded-lg terminal-dark-bg text-base text-white border ${fieldErrors?.password
-                            ? 'border-red-500 focus:border-red-500'
-                            : 'border-muted focus:border-blue'
-                        } focus:outline-none ${password ? 'filled' : ''}`}
+                    className={getInputClasses(!!fieldErrors?.password, !!password, true)}
                     id="password"
                     placeholder="password"
                     required
                     disabled={isLoading}
                 />
-                <label htmlFor="password" className={`input-label-custom ${fieldErrors?.password ? 'text-red-400' : 'text-muted'}`}>
+                <label htmlFor="password" className={getLabelClasses(!!fieldErrors?.password)}>
                     Password
                 </label>
                 <button
@@ -140,15 +141,12 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={handleConfirmPasswordChange}
-                    className={`input-field w-full p-3 h-14 pr-10 rounded-lg terminal-dark-bg text-base text-white border ${fieldErrors?.confirmPassword
-                            ? 'border-red-500 focus:border-red-500'
-                            : 'border-muted focus:border-blue'
-                        } focus:outline-none ${confirmPassword ? 'filled' : ''}`}
+                    className={getInputClasses(!!fieldErrors?.confirmPassword, !!confirmPassword, true)}
                     id="confirmPassword"
                     required
                     disabled={isLoading}
                 />
-                <label htmlFor="confirmPassword" className={`input-label-custom ${fieldErrors?.confirmPassword ? 'text-red-400' : 'text-muted'}`}>
+                <label htmlFor="confirmPassword" className={getLabelClasses(!!fieldErrors?.confirmPassword)}>
                     Confirm Password
                 </label>
                 <button
@@ -179,6 +177,12 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
                     'Sign up'
                 )}
             </button>
+
+            {error && (
+                <div className="mb-3 p-3 text-sm">
+                    {error}
+                </div>
+            )}
         </form>
     )
 }

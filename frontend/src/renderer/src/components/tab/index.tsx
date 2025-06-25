@@ -249,7 +249,7 @@ const TerminalTabs: React.FC<TerminalTabsProps> = ({ className }) => {
 
           {isSessionContextOpen && (
             <div
-              ref={sessionModalRef}
+              ref={sessionModalRef} 
               style={{
                 position: 'absolute',
                 left: contextMenuPosition.x,
