@@ -26,7 +26,7 @@ import {
   selectIsFormValid
 } from '@renderer/store/slices/authSlice/signIn'
 import { signUpUser } from '@renderer/store/slices/authSlice/signUp'
-
+import {GoogleAuthData} from '@shared/type'
 import SignInForm from './signInForm'
 import OrDivider from '../../common/OrDivider'
 import SocialButtons from '../../common/socialLogin'
@@ -80,7 +80,7 @@ const SignIn: React.FC<SignInProps> = ({
   }
 
   // Handle Google Auth Success
-  const handleGoogleSuccess = async (googleData: any) => {
+  const handleGoogleSuccess = async (googleData: GoogleAuthData) => {
     console.log('Google authentication successful:', googleData)
     dispatch(clearSocialAuthError())
 

@@ -28,12 +28,7 @@ export interface Terminal {
   id: string
   title: string
   type: 'local' | 'ssh'
-  sshParams?: {
-    host: string
-    username: string
-    port: number
-    protocol?: string
-  }
+  sshParams?: SSHParams
 }
 
 export interface TerminalState {
@@ -48,12 +43,7 @@ export interface ThemeState {
 export interface TerminalComponentProps {
   terminalId: string
   terminalType: 'local' | 'ssh'
-  sshParams?: {
-    host: string
-    username: string
-    port: number
-    protocol?: string
-  }
+  sshParams?: SSHParams
   onClose?: () => void
   onTitleChange?: (title: string) => void
 }

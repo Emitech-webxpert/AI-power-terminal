@@ -9,42 +9,50 @@ const createUser = async (userData: ISignUpUser): Promise<IUserResponse> => {
       throw new Error('Name and email are required');
     }
 
-    // Validate password for non-Google users
+    // For non-Google signups, password is required
     if (!userData.isGoogleLogin && !userData.password) {
       throw new Error('Password is required for regular signup');
     }
 
-    const existingUser = await User.findOne({ 
-      where: { email: userData.email.toLowerCase() } 
+    // Check if user already exists
+    const existingUser = await User.findOne({
+      where: { email: userData.email.toLowerCase() }
     });
-    
+
+    // Google login logic
     if (existingUser) {
-      throw new Error('Email already exists');
+      if (userData.isGoogleLogin) {
+        // Return existing user (login scenario)
+        const { password, resetOTP, resetOTPExpiry, ...userResponse } = existingUser.toJSON();
+        return userResponse;
+      } else {
+        // Normal signup trying to reuse existing email → throw error
+        throw new Error('Email already exists');
+      }
     }
 
-    let hashedPassword = undefined;
+    // Hash password for normal signup
+    let hashedPassword: string | undefined = undefined;
     if (userData.password && !userData.isGoogleLogin) {
       const saltRounds = 12;
       hashedPassword = await bcrypt.hash(userData.password, saltRounds);
     }
 
+    // Create new user
     const userToCreate = {
       ...userData,
       email: userData.email.toLowerCase(),
       password: hashedPassword,
-      isGoogleLogin: userData.isGoogleLogin || false
+      isGoogleLogin: userData.isGoogleLogin || false,
     };
 
-    // Create user
     const user = await User.create(userToCreate);
-    const userJson = user.toJSON();
-
-    // Return user without sensitive data
-    const { password, resetOTP, resetOTPExpiry, ...userResponse } = userJson;
+    const { password, resetOTP, resetOTPExpiry, ...userResponse } = user.toJSON();
     return userResponse;
   } catch (error: any) {
     throw new Error(`Failed to create user: ${error.message}`);
   }
 };
+
 
 export default createUser;

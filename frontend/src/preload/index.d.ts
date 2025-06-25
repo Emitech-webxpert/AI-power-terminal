@@ -1,6 +1,8 @@
 // src/preload/window.d.ts - Update your existing file
 import { ElectronAPI } from '@electron-toolkit/preload'
 import { CreateTerminalOptions } from '@shared/type'
+import { CreateTerminalOptions,TerminalResponse,BasicResponse,SSHPasswordData,SSHHostKeyData,GoogleAuthResult} from '@shared/type'
+
 
 declare global {
   interface Window {
@@ -8,44 +10,29 @@ declare global {
     api: {
       terminal: {
         // Terminal lifecycle
-        createTerminal: (options?: CreateTerminalOptions) => Promise<{ success: boolean; terminalId?: string; error?: string }>
-        closeTerminal: (terminalId: string) => Promise<{ success: boolean; error?: string }>
+        createTerminal: (options?: CreateTerminalOptions) => Promise<TerminalResponse>
+        closeTerminal: (terminalId: string) => Promise<BasicResponse>
         
         // Terminal input/output
-        writeToTerminal: (terminalId: string, data: string) => Promise<{ success: boolean; error?: string }>
+        writeToTerminal: (terminalId: string, data: string) => Promise<BasicResponse>
         
         // Terminal sizing
-        resizeTerminal: (terminalId: string, cols: number, rows: number) => Promise<{ success: boolean; error?: string }>
+        resizeTerminal: (terminalId: string, cols: number, rows: number) => Promise<BasicResponse>
         
         // Event listeners
         onTerminalData: (callback: (terminalId: string, data: string) => void) => (() => void)
         onTerminalExit: (callback: (terminalId: string, exitCode: number) => void) => (() => void)
         
         // SSH-specific methods
-        submitSSHPassword: (terminalId: string, password: string) => Promise<{ success: boolean; error?: string }>
-        acceptSSHHostKey: (terminalId: string) => Promise<{ success: boolean; error?: string }>
+        submitSSHPassword: (terminalId: string, password: string) => Promise<BasicResponse>
+        acceptSSHHostKey: (terminalId: string) => Promise<BasicResponse>
         
         // SSH event listeners
-        onSSHPasswordRequired: (callback: (terminalId: string, data: { hostname: string; username: string }) => void) => (() => void)
-        onSSHHostVerificationRequired: (callback: (terminalId: string, data: { hostname: string; hostKey: string }) => void) => (() => void)
+        onSSHPasswordRequired: (callback: (terminalId: string, data: SSHPasswordData) => void) => (() => void)
+        onSSHHostVerificationRequired: (callback: (terminalId: string, data: SSHHostKeyData) => void) => (() => void)
       }
       googleAuth: {
-        authenticate: () => Promise<{
-          success: boolean
-          data?: {
-            access_token: string
-            refresh_token?: string
-            userInfo: {
-              id: string
-              email: string
-              name: string
-              picture: string
-              given_name: string
-              family_name: string
-            }
-          }
-          error?: string
-        }>
+        authenticate: () => Promise<GoogleAuthResult>
       }
       NODE_SERVER_URL: string
       AI_SERVER_URL: string

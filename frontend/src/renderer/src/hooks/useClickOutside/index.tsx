@@ -21,7 +21,6 @@ const useClickOutside = (
       })
     }
 
-    // Only add listener if any condition is true
     if (conditions.some(condition => condition)) {
       document.addEventListener('mousedown', handleClickOutside)
     }

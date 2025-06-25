@@ -1,11 +1,14 @@
 import { ipcMain, BrowserWindow } from 'electron'
+import {GoogleUserInfo,GoogleTokenResponse,GoogleAuthResult,GoogleAuthError,GoogleAuthSuccess} from '@shared/type'
+const GOOGLE_CLIENT_ID = '598818981031-bsh9rhfp1frj5alsr1j10kjl9onvj83n.apps.googleusercontent.com'
+const GOOGLE_CLIENT_SECRET = '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'
+const REDIRECT_URI = 'http://localhost:3000/auth/callback'
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
-const REDIRECT_URI = process.env.REDIRECT_URI || ''
 
-const googleAuthIPC = () => {
-  ipcMain.handle('google:authenticate', async (_event) => {
+type AuthResult = GoogleAuthSuccess | GoogleAuthError
+
+const googleAuthIPC = (): void => {
+  ipcMain.handle('google:authenticate', async (): Promise<AuthResult> => {
     try {
       const authUrl = getAuthUrl()
       
@@ -23,7 +26,7 @@ const googleAuthIPC = () => {
         }
       })
 
-      const result = await new Promise((resolve) => {
+      const result = await new Promise<AuthResult>((resolve) => {
         authWindow.loadURL(authUrl)
 
         authWindow.on('closed', () => {
@@ -67,7 +70,11 @@ const getAuthUrl = (): string => {
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
 }
 
-const handleCallback = async (url: string, authWindow: BrowserWindow, resolve: (result: any) => void) => {
+const handleCallback = async (
+  url: string, 
+  authWindow: BrowserWindow, 
+  resolve: (result: AuthResult) => void
+): Promise<void> => {
   try {
     const urlParams = new URL(url)
     const code = urlParams.searchParams.get('code')
@@ -78,6 +85,8 @@ const handleCallback = async (url: string, authWindow: BrowserWindow, resolve: (
     } else if (code) {
       const tokens = await exchangeCodeForTokens(code)
       resolve({ success: true, data: tokens })
+    } else {
+      resolve({ success: false, error: 'No authorization code received' })
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
@@ -89,7 +98,11 @@ const handleCallback = async (url: string, authWindow: BrowserWindow, resolve: (
   }
 }
 
-const exchangeCodeForTokens = async (code: string) => {
+const exchangeCodeForTokens = async (code: string): Promise<{
+  access_token: string
+  refresh_token?: string
+  userInfo: GoogleUserInfo
+}> => {
   const tokenUrl = 'https://oauth2.googleapis.com/token'
   
   const params = new URLSearchParams({
@@ -112,7 +125,7 @@ const exchangeCodeForTokens = async (code: string) => {
     throw new Error(`Token exchange failed: ${response.statusText}`)
   }
 
-  const tokens = await response.json()
+  const tokens: GoogleTokenResponse = await response.json()
   const userInfo = await getUserInfo(tokens.access_token)
   
   return {
@@ -122,7 +135,7 @@ const exchangeCodeForTokens = async (code: string) => {
   }
 }
 
-const getUserInfo = async (accessToken: string) => {
+const getUserInfo = async (accessToken: string): Promise<GoogleUserInfo> => {
   const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
     headers: {
       'Authorization': `Bearer ${accessToken}`
@@ -133,7 +146,11 @@ const getUserInfo = async (accessToken: string) => {
     throw new Error(`Failed to get user info: ${response.statusText}`)
   }
 
-  return await response.json()
+  const userInfo: GoogleUserInfo = await response.json()
+  return userInfo
 }
 
 export default googleAuthIPC
+
+// Export types for use in other files
+export type { GoogleAuthResult, GoogleUserInfo }

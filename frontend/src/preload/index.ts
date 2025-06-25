@@ -1,71 +1,95 @@
 // src/preload/index.ts
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { CreateTerminalOptions } from '@shared/type'
+import {CreateTerminalOptions, TerminalResponse,BasicResponse,SSHPasswordData,SSHHostKeyData,GoogleAuthResult} from '@shared/type'
+
 
 const terminalAPI = {
   // Terminal lifecycle - Updated to support SSH options
-  createTerminal: (options?: CreateTerminalOptions) => ipcRenderer.invoke('terminal:create', options),
-  closeTerminal: (terminalId: string) => ipcRenderer.invoke('terminal:close', terminalId),
-     
+  createTerminal: (options?: CreateTerminalOptions): Promise<TerminalResponse> => 
+    ipcRenderer.invoke('terminal:create', options),
+  
+  closeTerminal: (terminalId: string): Promise<BasicResponse> => 
+    ipcRenderer.invoke('terminal:close', terminalId),
+  
   // Terminal input/output
-  writeToTerminal: (terminalId: string, data: string) =>
+  writeToTerminal: (terminalId: string, data: string): Promise<BasicResponse> =>
     ipcRenderer.invoke('terminal:write', terminalId, data),
-     
+  
   // Terminal sizing
-  resizeTerminal: (terminalId: string, cols: number, rows: number) =>
+  resizeTerminal: (terminalId: string, cols: number, rows: number): Promise<BasicResponse> =>
     ipcRenderer.invoke('terminal:resize', terminalId, cols, rows),
-     
+  
   // Listen for terminal output (secure event listener)
-  onTerminalData: (callback: (terminalId: string, data: string) => void) => {
-    const listener = (_: any, terminalId: string, data: string) => callback(terminalId, data)
+  onTerminalData: (callback: (terminalId: string, data: string) => void): (() => void) => {
+    const listener = (_event: IpcRendererEvent, terminalId: string, data: string) => 
+      callback(terminalId, data)
+    
     ipcRenderer.on('terminal:data', listener)
-         
+    
     // Return cleanup function
     return () => ipcRenderer.removeListener('terminal:data', listener)
   },
-     
+  
   // Listen for terminal exit
-  onTerminalExit: (callback: (terminalId: string, exitCode: number) => void) => {
-    const listener = (_: any, terminalId: string, exitCode: number) => callback(terminalId, exitCode)
+  onTerminalExit: (callback: (terminalId: string, exitCode: number) => void): (() => void) => {
+    const listener = (_event: IpcRendererEvent, terminalId: string, exitCode: number) => 
+      callback(terminalId, exitCode)
+    
     ipcRenderer.on('terminal:exit', listener)
-         
-    // Return cleanup function      
+    
+    // Return cleanup function
     return () => ipcRenderer.removeListener('terminal:exit', listener)
   },
-   
+  
   // SSH-specific methods
-  submitSSHPassword: (terminalId: string, password: string) =>
-     ipcRenderer.invoke('ssh:submit-password', terminalId, password),
-     
-  acceptSSHHostKey: (terminalId: string) =>
-     ipcRenderer.invoke('ssh:accept-host-key', terminalId),
-   
+  submitSSHPassword: (terminalId: string, password: string): Promise<BasicResponse> =>
+    ipcRenderer.invoke('ssh:submit-password', terminalId, password),
+  
+  acceptSSHHostKey: (terminalId: string): Promise<BasicResponse> =>
+    ipcRenderer.invoke('ssh:accept-host-key', terminalId),
+  
   // SSH event listeners
-  onSSHPasswordRequired: (callback: (terminalId: string, data: { hostname: string, username: string }) => void) => {
-    const listener = (_: any, terminalId: string, data: any) => callback(terminalId, data)
+  onSSHPasswordRequired: (
+    callback: (terminalId: string, data: SSHPasswordData) => void
+  ): (() => void) => {
+    const listener = (_event: IpcRendererEvent, terminalId: string, data: SSHPasswordData) => 
+      callback(terminalId, data)
+    
     ipcRenderer.on('ssh:password-required', listener)
     return () => ipcRenderer.removeListener('ssh:password-required', listener)
   },
-   
-  onSSHHostVerificationRequired: (callback: (terminalId: string, data: { hostname: string, hostKey: string }) => void) => {
-    const listener = (_: any, terminalId: string, data: any) => callback(terminalId, data)
+  
+  onSSHHostVerificationRequired: (
+    callback: (terminalId: string, data: SSHHostKeyData) => void
+  ): (() => void) => {
+    const listener = (_event: IpcRendererEvent, terminalId: string, data: SSHHostKeyData) => 
+      callback(terminalId, data)
+    
     ipcRenderer.on('ssh:host-verification-required', listener)
     return () => ipcRenderer.removeListener('ssh:host-verification-required', listener)
   }
 }
 
-// Add Google Auth API
+// Google Auth API with proper typing
 const googleAuthAPI = {
-  authenticate: () => ipcRenderer.invoke('google:authenticate')
+  authenticate: (): Promise<GoogleAuthResult> => ipcRenderer.invoke('google:authenticate')
 }
 
-// Custom APIs for renderer
+// Custom APIs for renderer with proper typing
 const api = {
   terminal: terminalAPI,
-  googleAuth: googleAuthAPI, 
+  googleAuth: googleAuthAPI,
   NODE_SERVER_URL: process.env.NODE_SERVER_URL || '',
   AI_SERVER_URL: process.env.AI_SERVER_URL || ''
+} as const
+
+// Type the window extensions properly
+declare global {
+  interface Window {
+    electron: typeof electronAPI
+    api: typeof api
+  }
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to renderer
@@ -74,11 +98,19 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
   } catch (error) {
-    console.error(error)
+    console.error('Failed to expose APIs to main world:', error)
   }
 } else {
-  // @ts-ignore (define in dts)
-  window.electron = electronAPI
-  // @ts-ignore (define in dts)
-  window.api = api
+  // Fallback for non-isolated context
+  ;(window as Window & typeof globalThis).electron = electronAPI
+  ;(window as Window & typeof globalThis).api = api
+}
+
+// Export types for use in other files
+export type { 
+  TerminalResponse, 
+  BasicResponse, 
+  SSHPasswordData, 
+  SSHHostKeyData, 
+  GoogleAuthResult 
 }
