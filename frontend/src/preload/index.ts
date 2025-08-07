@@ -1,7 +1,7 @@
 // src/preload/index.ts
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import {CreateTerminalOptions, TerminalResponse,BasicResponse,SSHPasswordData,SSHHostKeyData,GoogleAuthResult} from '@shared/type'
+import {CreateTerminalOptions, TerminalResponse,BasicResponse,SSHPasswordData,SSHHostKeyData,GoogleAuthResult,NotificationOptions,NotificationResponse} from '@shared/type'
 
 
 const terminalAPI = {
@@ -71,15 +71,20 @@ const terminalAPI = {
   }
 }
 
-// Google Auth API with proper typing
 const googleAuthAPI = {
   authenticate: (): Promise<GoogleAuthResult> => ipcRenderer.invoke('google:authenticate')
+}
+
+const notificationAPI = {
+  show: (options: NotificationOptions): Promise<NotificationResponse> =>
+    ipcRenderer.invoke('notification:show', options)
 }
 
 // Custom APIs for renderer with proper typing
 const api = {
   terminal: terminalAPI,
   googleAuth: googleAuthAPI,
+  notification: notificationAPI,
   NODE_SERVER_URL: process.env.NODE_SERVER_URL || '',
   AI_SERVER_URL: process.env.AI_SERVER_URL || ''
 } as const
@@ -112,5 +117,7 @@ export type {
   BasicResponse, 
   SSHPasswordData, 
   SSHHostKeyData, 
-  GoogleAuthResult 
+  GoogleAuthResult,
+  NotificationOptions,
+  NotificationResponse
 }
